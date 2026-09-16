@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S&S Tracker v10 Import</title>
+<style>
+body{font-family:Georgia,serif;background:#F7F2E8;color:#2B2418;margin:0;padding:16px;max-width:760px;margin:auto}
+h1{font-size:22px;margin:8px 0}.sub{color:#7A7060;font-size:13px}
+button{background:#2D5A3D;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-size:15px;margin:8px 8px 8px 0;cursor:pointer}
+button:disabled{opacity:.5}#log{background:#fff;border:1px solid #D8CDB8;border-radius:8px;padding:10px;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-height:55vh;overflow:auto}
+.ok{color:#2D5A3D}.err{color:#9B2C2C}.warn{color:#8A6425}
+</style></head><body>
+<h1>Import Prop Tracker v10</h1>
+<div class="sub">One-time merge of the PDF packet into the S&amp;S Props database: notes, questions, research photos (→ Inspiration/Reference) and actual-prop photos (→ Sourcing Options) are added to matching props; 25 unmatched items are added in the group “New from Tracker v10”. Nothing existing is deleted or overwritten, and running it twice won't create duplicates.</div>
+<button id="chk">1 · Check connection</button><button id="run" disabled>2 · Run import</button>
+<div id="log">Loading data…</div>
+<p class="sub"><a href="./">← back to S&amp;S Props</a></p>
+<script>
+const SB_URL='https://ekklojiookkuuglaaazi.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVra2xvamlvb2trdXVnbGFhYXppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MzMyMDAsImV4cCI6MjA5MTAwOTIwMH0.UpRIzDClYuzMQfeBdMBc8Z0iVBU-9kUWLYH6Nl0PlhI';
+const H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+const logEl=document.getElementById('log');let first=true;
+function log(m,c=''){if(first){logEl.textContent='';first=false;}const s=document.createElement('div');s.className=c;s.textContent=m;logEl.appendChild(s);logEl.scrollTop=1e9;}
+async function get(t,q){const r=await fetch(SB_URL+'/rest/v1/'+t+'?'+q,{headers:H});if(!r.ok)throw new Error(t+': '+await r.text());return r.json();}
+async function post(t,d,upsert){const r=await fetch(SB_URL+'/rest/v1/'+t,{method:'POST',headers:{...H,Prefer:(upsert?'resolution=merge-duplicates,':'')+'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(t+': '+await r.text());}
+let DATA=null,MASTER=null;
+fetch('tracker_v10_import.json').then(r=>r.json()).then(d=>{DATA=d;first=true;log('Loaded '+d.updates.length+' updates for existing props and '+d.new.length+' new props. Click “Check connection”.');}).catch(e=>log('Could not load tracker_v10_import.json — upload it next to this page. '+e,'err'));
+document.getElementById('chk').onclick=async()=>{
+  try{MASTER=await get('props_master','select=prop_id,name,notes,sort_order');const pd=await get('prop_data','select=prop_id');
+    log('✓ Connected. props_master: '+MASTER.length+' rows, prop_data: '+pd.length+' rows.','ok');
+    if(!MASTER.length){log('props_master is empty — stopping so nothing is imported into a blank database.','err');return;}
+    const byName=new Map(MASTER.map(m=>[m.name,m]));const miss=DATA.updates.filter(u=>!byName.has(u.name));
+    if(miss.length)log(miss.length+' prop names not found in the database (will be skipped): '+miss.map(m=>m.name).join(', '),'warn');
+    document.getElementById('run').disabled=false;
+  }catch(e){log('✗ Can’t reach Supabase: '+e.message+'\nIf the project is paused, restore it in the Supabase dashboard and try again.','err');}
+};
+document.getElementById('run').onclick=async()=>{
+  const btn=document.getElementById('run');btn.disabled=true;
+  const byName=new Map(MASTER.map(m=>[m.name,m]));let maxSort=Math.max(0,...MASTER.map(m=>m.sort_order||0));
+  const ts=new Date().toLocaleString();let ok=0,fail=0;
+  async function addExtras(pid,qs,ref,src){
+    const rows=await get('prop_data','prop_id=eq.'+encodeURIComponent(pid));const row=rows[0]||{prop_id:pid};
+    const ql=row.questions_list||[];let added=0;
+    qs.forEach((t,i)=>{if(!ql.some(q=>q.text===t)){ql.push({id:Date.now()+i,text:t,recipient:'',resolved:false,author:'Tracker v10',ts});added++;}});
+    if(added){row.questions_list=ql;row.updated_at=new Date().toISOString();await post('prop_data',[row],true);}
+    for(const[zone,list]of[['ref',ref],['src',src]]){
+      if(!list.length)continue;
+      const ex=await get('prop_images','prop_id=eq.'+encodeURIComponent(pid)+'&zone=eq.'+zone+'&select=image_data,sort_order');
+      const have=new Set(ex.map(x=>x.image_data));let so=ex.length?Math.max(...ex.map(x=>x.sort_order||0))+1:0;
+      for(const img of list){if(have.has(img))continue;await post('prop_images',[{prop_id:pid,zone,image_data:img,sort_order:so++}]);}
+    }
+  }
+  for(const u of DATA.updates){
+    const m=byName.get(u.name);if(!m)continue;
+    try{
+      const add=u.notes_add.filter(b=>!(m.notes||'').includes(b.split(' — ')[0]));
+      if(add.length){const notes=((m.notes||'')+'\n\n'+add.join('\n\n')).trim();
+        const r=await fetch(SB_URL+'/rest/v1/props_master?prop_id=eq.'+encodeURIComponent(m.prop_id),{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify({notes})});if(!r.ok)throw new Error(await r.text());}
+      await addExtras(m.prop_id,u.questions,u.ref,u.src);ok++;log('✓ '+u.name+(u.ref.length+u.src.length?' ('+(u.ref.length+u.src.length)+' img)':''),'ok');
+    }catch(e){fail++;log('✗ '+u.name+': '+e.message,'err');}
+  }
+  const ids=new Set(MASTER.map(m=>m.prop_id));
+  for(const n of DATA.new){
+    try{
+      if(!ids.has(n.prop_id))await post('props_master',[{prop_id:n.prop_id,section:n.section,grp:n.grp,name:n.name,qty:n.qty,status:n.status,notes:n.notes,budget:n.budget,hrs:n.hrs,sort_order:++maxSort}]);
+      await addExtras(n.prop_id,n.questions,n.ref,n.src);ok++;log('＋ '+n.name,'ok');
+    }catch(e){fail++;log('✗ '+n.name+': '+e.message,'err');}
+  }
+  log('\nDone: '+ok+' succeeded, '+fail+' failed.'+(fail?' You can safely run it again.':' Open the main site to see everything.'),fail?'warn':'ok');btn.disabled=false;
+};
+</script></body></html>
