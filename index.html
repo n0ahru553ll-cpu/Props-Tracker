@@ -553,7 +553,7 @@ function changeIdentity(){currentUser='';localStorage.removeItem(ID_KEY);pending
 function nowStamp(){return new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});}
 
 let currentFilter='all',currentSearch='',currentView='list',currentPropId=null,saveTimer=null;
-function statusKey(s){s=(s||'').toLowerCase();if(s.includes('needed'))return'needed';if(s.includes('pull'))return'pull';if(s.includes('complete'))return'complete';if(s.includes('various'))return'various';return'tbd';}
+function statusKey(s){s=(s||'').toLowerCase();if(s.includes('needed'))return'needed';if(s.includes('pull'))return'pull';if(s.includes('complete')||s.includes('ready')||s.includes('delivered'))return'complete';if(s.includes('various'))return'various';return'tbd';}
 function statusColor(s){return{needed:'#9B2C2C',pull:'#2D5A3D',complete:'#2D5A3D',various:'#4A3566',tbd:'#8A6425'}[statusKey(s)];}
 function statusChipCls(s){return{needed:'chip-needed',pull:'chip-pull',complete:'chip-complete',various:'chip-various',tbd:'chip-tbd'}[statusKey(s)];}
 
@@ -624,8 +624,8 @@ async function openProp(id){
 }
 
 function renderDetail(prop,data){
-  const es=data.userStatus||prop.status;const sb=prop.budget.replace('Potentially Pull Stock \u2014 ','');
-  const SOPTS=[{l:'Needed',v:'Needed',bg:'#9B2C2C'},{l:'Potentially Pull Stock',v:'Potentially Pull Stock',bg:'#2D5A3D'},{l:'Pull Stock \u2014 Confirmed',v:'Pull Stock \u2014 Confirmed',bg:'#2D5A3D'},{l:'Sourced',v:'Sourced',bg:'#2D5A3D'},{l:'In Progress',v:'In Progress',bg:'#8A6425'},{l:'Complete',v:'Complete',bg:'#2D5A3D'},{l:'Various',v:'Various',bg:'#4A3566'},{l:'TBD',v:'TBD',bg:'#8A6425'}];
+  let es=data.userStatus||prop.status;if(es==='Complete')es='Pulled';const sb=prop.budget.replace('Potentially Pull Stock \u2014 ','');
+  const SOPTS=[{l:'Needed',v:'Needed',bg:'#9B2C2C'},{l:'Potentially Pull Stock',v:'Potentially Pull Stock',bg:'#2D5A3D'},{l:'Pull Stock \u2014 Confirmed',v:'Pull Stock \u2014 Confirmed',bg:'#2D5A3D'},{l:'Pulled',v:'Pulled',bg:'#2D5A3D'},{l:'Sourced',v:'Sourced',bg:'#2D5A3D'},{l:'Ordered',v:'Ordered',bg:'#8A6425'},{l:'Delivered',v:'Delivered',bg:'#2D5A3D'},{l:'In Progress',v:'In Progress',bg:'#8A6425'},{l:'Rehearsal Ready',v:'Rehearsal Ready',bg:'#2B4C7E'},{l:'Performance Ready',v:'Performance Ready',bg:'#1F5F4A'},{l:'Various',v:'Various',bg:'#4A3566'},{l:'TBD',v:'TBD',bg:'#8A6425'}];
   const pills=SOPTS.map(o=>'<button class="status-opt'+(es===o.v?' selected':'')+'" style="background:'+o.bg+';color:white" onclick="setStatus(\''+o.v+'\')">'+o.l+'</button>').join('');
   const isC=!!(data.completed);
   document.getElementById('detail-view').innerHTML=
@@ -911,7 +911,7 @@ async function autoCompleteTypes(pid,types,reason){try{const e=await ensureExtra
   if(n&&currentPropId===pid)renderExtras();return n;}catch(err){console.warn(err);return 0;}}
 function actionsOnStatus(pid,v){if(v==='Pull Stock \u2014 Confirmed')autoCompleteTypes(pid,['Pull'],'status set to Pull Stock \u2014 Confirmed');
   if(v==='Sourced')autoCompleteTypes(pid,['Purchase','Price out / Source'],'status set to Sourced');
-  if(v==='Complete')actionsOnComplete(pid);}
+  if(v==='Pulled')autoCompleteTypes(pid,['Pull'],'status set to Pulled');}
 async function actionsOnComplete(pid){try{const e=await ensureExtras(pid);if(!e||e.actErr)return;const open=e.actions.filter(isOpenAct);if(!open.length)return;
   if(!confirm('This prop still has '+open.length+' open action'+(open.length>1?'s':'')+'. Mark '+(open.length>1?'them':'it')+' Done too?'))return;
   for(const a of open)await updateAction(a.id,{status:'Done',resolution:'Auto: prop marked complete'},{auto:true});if(currentPropId===pid)renderExtras();}catch(err){console.warn(err);}}
@@ -928,7 +928,7 @@ async function migrateQuestions(){if(migratedOnce||!ACT_TABLE_OK)return;migrated
     if(!r.ok)throw new Error(await r.text());const added=await r.json();
     if(added.length){logChange('_general','action','','Moved '+added.length+' earlier question'+(added.length>1?'s':'')+' into Actions',true);ACTIONS_ALL=null;await loadActionSummary();if(currentView==='list')renderList();}
   }catch(e){console.warn('migrate questions',e);migratedOnce=false;}}
-async function loadActionSummary(){try{ACTION_SUMMARY=await sbGet('prop_actions','select=id,prop_id,status,due_on,closed_at');ACT_TABLE_OK=true;recountActions();}catch(e){ACT_TABLE_OK=false;}}
+async function loadActionSummary(){try{ACTION_SUMMARY=await sbGet('prop_actions','status=neq.Deleted&select=id,prop_id,status,due_on,closed_at');ACT_TABLE_OK=true;recountActions();}catch(e){ACT_TABLE_OK=false;}}
 
 // ---- UI pieces
 function actStatusCls(s){return {'Open':'st-open','In progress':'st-prog','Waiting':'st-wait','Done':'st-done',"Won't do":'st-wont'}[s]||'st-open';}
@@ -995,7 +995,15 @@ function drawActionEditor(){const A=ACT_EDIT;if(A.action_type==='Pull'&&!A.pull_
     +'<div class="modal-field"><label class="modal-label">Links (optional)</label><div class="note-link-row">'
     +'<select class="modal-select" id="ae-rep">'+opt('','\u2014 rehearsal report \u2014',A.report_id)+(ALL_REPORTS||[]).filter(r=>r.active).map(r=>opt(r.id,reportLabel(r),A.report_id)).join('')+'</select>'
     +(A.prop_id?'<select class="modal-select" id="ae-em">'+opt('','\u2014 email \u2014',A.email_id)+emails.map(f=>opt(f.id,f.subject||f.file_name||'(no subject)',A.email_id)).join('')+'</select><select class="modal-select" id="ae-note">'+opt('','\u2014 note \u2014',A.note_id)+notes.map(n=>opt(n.id,'#'+nums[n.id]+' '+noteSummary(n.body),A.note_id)).join('')+'</select>':'')+'</div></div>'
-    +'<div class="modal-btns"><button class="modal-cancel" onclick="closeActionEditor()">Cancel</button><button class="modal-save" onclick="saveActionEditor()">'+(A.id?'Save changes':'Add action')+'</button></div>';}
+    +'<div class="modal-btns">'+(A.id?'<button class="modal-cancel" style="color:#C53030;border-color:#C53030" onclick="deleteActionEditor()">Delete</button>':'')+'<button class="modal-cancel" onclick="closeActionEditor()">Cancel</button><button class="modal-save" onclick="saveActionEditor()">'+(A.id?'Save changes':'Add action')+'</button></div>';}
+async function deleteActionEditor(){const id=ACT_EDIT&&ACT_EDIT.id;const a=id&&ACT_BY_ID[id];if(!a)return;
+  if(!confirm('Delete this action permanently?\n\n'+actLabel(a)))return;
+  try{await sbPatch('prop_actions','id=eq.'+id,{status:'Deleted',updated_at:new Date().toISOString()});
+    Object.values(EXTRAS).forEach(x=>{if(x.actions)x.actions=x.actions.filter(y=>y.id!==id);});
+    if(ACTIONS_ALL)ACTIONS_ALL=ACTIONS_ALL.filter(y=>y.id!==id);ACTION_SUMMARY=ACTION_SUMMARY.filter(y=>y.id!==id);delete ACT_BY_ID[id];recountActions();
+    logChange(a.prop_id||'_general','action','','Deleted action \u2014 '+actLabel(a),true);
+    closeActionEditor();refreshActionViews();showToast();}
+  catch(err){alert('Could not delete. '+(err.message||''));}}
 function closeActionEditor(){document.getElementById('act-overlay').classList.remove('open');ACT_EDIT=null;}
 async function saveActionEditor(){aeCollect();const A=ACT_EDIT;if(!A.details?.trim()&&!A.action_type)return alert('Add some details.');
   const f={prop_id:A.prop_id||null,who:A.who,person:(A.person||'').trim()||null,action_type:A.action_type,pull_from:A.action_type==='Pull'?(A.pull_from||null):null,details:((A.details||'').trim()||(A.action_type==='Pull'&&A.pull_from?'Pull from '+A.pull_from:''))||null,priority:A.priority||'Normal',due_on:A.due_on||null,status:A.status||'Open',resolution:ACT_CLOSED.includes(A.status)?((A.resolution||'').trim()||null):null,report_id:A.report_id||null,email_id:A.email_id||null,note_id:A.note_id||null};
@@ -1011,7 +1019,7 @@ function showQuestions(){histFlushAll();heroEditing=false;currentView='questions
   document.getElementById('header-title').textContent='To-Do';document.getElementById('header-sub').textContent='Actions by who';updateNav('questions');renderTodo(true);}
 async function renderTodo(reload){const el=document.getElementById('questions-view');
   if(reload||!ACTIONS_ALL){if(!ACTIONS_ALL)el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:12px">Loading\u2026</div>';
-    try{await migrateQuestions();ACTIONS_ALL=regActs(await sbGet('prop_actions','order=created_at.asc'));ACT_TABLE_OK=true;recountActions();
+    try{await migrateQuestions();ACTIONS_ALL=regActs(await sbGet('prop_actions','status=neq.Deleted&order=created_at.asc'));ACT_TABLE_OK=true;recountActions();
       if(!ALL_REPORTS){try{ALL_REPORTS=await sbGet('rehearsal_reports','order=report_date.desc.nullslast,created_at.desc');}catch(e){}}}
     catch(e){ACT_TABLE_OK=false;el.innerHTML='<div style="padding:12px">'+tableMissingMsg()+'</div>';return;}
     if(currentView!=='questions')return;}
@@ -1071,7 +1079,7 @@ async function loadExtras(pid){
     e.purchases=p;e.files=f;e.links=l;
     if(!ALL_REPORTS)ALL_REPORTS=await sbGet('rehearsal_reports','order=report_date.desc.nullslast,created_at.desc');
   }catch(err){console.warn(err);e.err=true;}
-  try{e.actions=regActs(await sbGet('prop_actions','prop_id=eq.'+encodeURIComponent(pid)+'&order=created_at.asc'));e.actErr=false;ACT_TABLE_OK=true;}catch(err){console.warn(err);e.actions=[];e.actErr=true;}
+  try{e.actions=regActs(await sbGet('prop_actions','status=neq.Deleted&prop_id=eq.'+encodeURIComponent(pid)+'&order=created_at.asc'));e.actErr=false;ACT_TABLE_OK=true;}catch(err){console.warn(err);e.actions=[];e.actErr=true;}
   try{e.notes=await sbGet('prop_notes','prop_id=eq.'+encodeURIComponent(pid)+'&order=created_at.asc');NOTE_COUNTS[pid]=e.notes.filter(n=>n.active).length;}catch(err){console.warn(err);e.notesErr=true;}
   e.loaded=true;updatePurchTotal(pid);
   if(currentPropId===pid)renderExtras();
@@ -1452,7 +1460,7 @@ async function loadSheetData(){
   const pc={};imgs.forEach(i=>{if((i.sort_order??0)<0)return;pc[i.prop_id]=pc[i.prop_id]||{ref:0,src:0};pc[i.prop_id][i.zone]++;});
   let purch=[],reps=[],rlinks=[];try{[purch,reps,rlinks]=await Promise.all([sbGet('prop_purchases','order=purchased_on.asc.nullslast,created_at.asc'),sbGet('rehearsal_reports','active=eq.true&order=report_date.asc.nullslast'),sbGet('report_props','active=eq.true')]);}catch(e){}
   let allNotes=[];try{allNotes=await sbGet('prop_notes','order=created_at.asc');}catch(e){}
-  let allActs=[];try{allActs=await sbGet('prop_actions','order=created_at.asc');}catch(e){}
+  let allActs=[];try{allActs=await sbGet('prop_actions','status=neq.Deleted&order=created_at.asc');}catch(e){}
   SHEET_CACHE={ver,hist,photos:pc,purch,reps,rlinks,notes:allNotes,actions:allActs,at:new Date()};return SHEET_CACHE;
 }
 function sheetRows(){
