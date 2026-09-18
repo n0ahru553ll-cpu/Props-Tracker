@@ -633,8 +633,8 @@ function renderDetail(prop,data){
     +'<div class="detail-body">'
       +'<div class="detail-card"><div class="detail-card-header">Status</div><div class="status-picker">'+pills+'</div>'
       +'<button class="complete-btn'+(isC?' done':'')+'" onclick="toggleComplete()"><span class="cbx">'+(isC?'\u2713':'')+'</span>'+(isC?'Mark as Incomplete':'Mark as Complete')+'</button></div>'
-      +'<div class="detail-card"><div class="img-zone-label"><span>Actions</span><button class="img-zone-add-btn" onclick="openActionEditor(null,{prop_id:currentPropId})">+ Add action</button></div><div id="act-body"><div class="hist-list"><div class="hist-item">Loading\u2026</div></div></div></div>'
       +renderSourceCard(data)
+      +'<div class="detail-card"><div class="img-zone-label"><span>Actions</span><button class="img-zone-add-btn" onclick="openActionEditor(null,{prop_id:currentPropId})">+ Add action</button></div><div id="act-body"><div class="hist-list"><div class="hist-item">Loading\u2026</div></div></div></div>'
       +'<div class="detail-card"><label class="field-label">Notes from prop list</label><textarea class="field-input" rows="2" placeholder="\u2014" oninput="masterChange(\'notes\',this.value)">'+esc(prop.notes||'')+'</textarea></div>'
       +extrasCards()
       +'<div class="detail-card"><div class="img-zone-label"><span>Notes</span><button class="img-zone-add-btn" onclick="openNoteForm()">+ Add note</button></div><div id="notes-body"><div class="hist-list"><div class="hist-item">Loading\u2026</div></div></div></div>'
