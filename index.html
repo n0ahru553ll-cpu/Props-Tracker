@@ -145,7 +145,7 @@ html,body{height:100%;width:100%;background:var(--ink);font-family:'DM Mono',mon
 #save-toast{position:fixed;bottom:calc(var(--safe-bot) + 70px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#D4FFE4;font-size:11px;letter-spacing:.08em;padding:8px 18px;border-radius:100px;opacity:0;transition:all .3s;pointer-events:none;z-index:100;white-space:nowrap}
 #save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 /* NAV */
-#bottom-nav{background:var(--ink);border-top:1px solid #2A2520;padding:10px 0 calc(var(--safe-bot) + 6px);display:grid;grid-template-columns:repeat(6,1fr);flex-shrink:0}
+#bottom-nav{background:var(--ink);border-top:1px solid #2A2520;padding:10px 0 calc(var(--safe-bot) + 6px);display:grid;grid-template-columns:repeat(7,1fr);flex-shrink:0}
 .nav-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:#D9CFBA;padding:4px;font-family:'DM Mono',monospace}
 .nav-btn:hover{color:#FFF6E4}
 .nav-btn.active{color:var(--gold)}
@@ -192,6 +192,40 @@ table.xl tr.done td{color:#9A9282;background:#F7F7F4}
 table.xl tr.flag td{background:#FFF6D6}
 table.xl tr.over td.num.bad{color:#9B2C2C;font-weight:600}
 .sheet-note{font-size:10px;color:var(--muted);margin:8px 2px}
+/* BUDGET */
+#budget-view{display:none;flex:1;overflow-y:auto;padding:14px 12px calc(var(--safe-bot) + 20px)}
+#budget-view .dash-stat-num{font-size:26px}
+#budget-view .dash-stat.bad .dash-stat-num{color:var(--red)}#budget-view .dash-stat.warn .dash-stat-num{color:var(--gold-dim)}
+.bg-meter{height:8px;border-radius:100px;background:var(--parchment);border:1px solid var(--border);overflow:hidden}
+.bg-meter-fill{height:100%;background:var(--green)}.bg-meter-fill.over{background:var(--red)}
+.bg-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.bg-actions .modal-save{flex:0 1 auto;padding:12px 16px}.bg-actions .modal-cancel{padding:12px 14px}
+.bg-card.off{opacity:.55}.bg-card.open{border-color:var(--gold)}
+.bg-head{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}
+.bg-thumb{width:48px;height:48px;object-fit:cover;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--parchment);font-size:20px;text-decoration:none;flex-shrink:0}
+.bg-thumb.big{width:auto;max-width:100%;height:auto;max-height:340px;object-fit:contain;margin:0 auto}.bg-thumb.pdf.big,.bg-thumb.empty.big{width:100%;height:70px}
+.bg-main{flex:1;min-width:0}.bg-vendor{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bg-props{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.bg-props .rr-chip{font-size:9px;padding:2px 8px;cursor:default}
+.bg-status{font-size:9px;letter-spacing:.06em;text-transform:uppercase;border-radius:100px;padding:4px 8px;white-space:nowrap;flex-shrink:0;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.bg-status.ok{background:#E3EDE5;color:var(--green)}.bg-status.warn{background:#F6EBD3;color:var(--gold-dim)}.bg-status.bad{background:#F3DEDE;color:var(--red)}.bg-status.off{background:var(--parchment);color:var(--muted)}
+.bg-body{padding:0 12px 12px;border-top:1px solid var(--border)}.bg-preview{padding:10px 0;text-align:center}.bg-preview a{display:inline-block}
+.bg-meta{display:grid;grid-template-columns:2fr 1.3fr 1fr 1fr;gap:8px;padding:10px 0}
+.bg-meta label{display:flex;flex-direction:column;gap:3px;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);min-width:0}.bg-meta label.full{grid-column:1/-1}
+.bg-meta .modal-input{padding:8px 10px;font-size:13px;min-width:0}
+.bl-head,.bl-row{display:grid;grid-template-columns:1.3fr 1.6fr 86px 76px 52px;gap:6px;align-items:center}
+.bl-head{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:6px 2px;border-bottom:1px solid var(--border)}
+.bl-row{padding:5px 0;border-bottom:1px solid var(--border)}.bl-row.off{opacity:.45}
+.bl-row input,.bl-row select{width:100%;min-width:0;border:1px solid var(--border);background:#fff;border-radius:6px;font-family:'DM Mono',monospace;font-size:12px;padding:7px 6px;color:var(--ink)}
+.bl-row input:focus,.bl-row select:focus{border-color:var(--gold);outline:none}.bl-row input:disabled,.bl-row select:disabled{background:transparent;border-color:transparent;color:var(--ink)}
+.bl-row.new input,.bl-row.new select{background:#FBF7EC;border-style:dashed}
+.bl-amt{text-align:right}.bl-taxed{font-size:12px;text-align:right;color:var(--muted)}
+.bl-acts{display:flex;justify-content:flex-end;gap:2px}.bl-acts button{background:none;border:none;cursor:pointer;font-size:15px;padding:2px 5px;color:var(--gold-dim)}.bl-acts .img-zone-add-btn{font-size:10px;color:var(--ink);padding:6px 12px;background:var(--gold);border-radius:100px}
+.bg-totals{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:flex-end;font-size:11px;padding:10px 2px}.bg-totals .ok{color:var(--green)}.bg-totals .warn{color:var(--gold-dim)}.bg-totals .bad{color:var(--red)}
+.bg-off summary{font-size:10px;color:var(--muted);cursor:pointer;padding:6px 2px;letter-spacing:.06em;text-transform:uppercase}
+.bg-foot{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:6px}.bg-foot .modal-cancel{padding:9px 12px;font-size:11px}
+@media (max-width:640px){.bg-meta{grid-template-columns:1fr 1fr}.bg-meta label:first-child{grid-column:1/-1}
+.bl-head{display:none}.bl-row{grid-template-columns:1fr 66px 64px;grid-template-areas:"item item item" "prop prop prop" "amt taxed acts"}
+.bl-row .bl-item{grid-area:item;font-weight:600}.bl-row .bl-prop{grid-area:prop}.bl-row .bl-amt{grid-area:amt;text-align:left}.bl-row .bl-taxed{grid-area:taxed}.bl-row .bl-acts{grid-area:acts}
+.bl-row>span:empty{display:none}#bottom-nav .nav-label{font-size:8px;letter-spacing:.04em}}
 #reports-view{display:none;flex:1;overflow-y:auto;padding:12px 12px calc(var(--safe-bot) + 20px)}
 .hdr-nav{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);border-radius:100px;font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;cursor:pointer;display:none;align-items:center;white-space:nowrap}
 .hdr-nav:disabled{opacity:.3;cursor:default}
@@ -362,12 +396,14 @@ details summary{font-size:10px;color:var(--gold-dim);cursor:pointer;margin-top:3
   <div id="questions-view"></div>
   <div id="sheet-view"></div>
   <div id="reports-view"></div>
+  <div id="budget-view"></div>
   <div id="save-toast">&#10003; Saved</div>
   <div id="bottom-nav">
     <button class="nav-btn active" id="nav-list" onclick="showList()"><span class="nav-icon">&#9776;</span><span class="nav-label">Props</span></button>
     <button class="nav-btn" id="nav-questions" onclick="showQuestions()"><span class="nav-icon">&#9745;</span><span class="nav-label">To-Do</span></button>
     <button class="nav-btn" id="nav-dash" onclick="showDash()"><span class="nav-icon">&#9672;</span><span class="nav-label">Dashboard</span></button>
     <button class="nav-btn" id="nav-reports" onclick="showReports()"><span class="nav-icon">&#128203;</span><span class="nav-label">Reports</span></button>
+    <button class="nav-btn" id="nav-budget" onclick="showBudget()"><span class="nav-icon">&#36;</span><span class="nav-label">Budget</span></button>
     <button class="nav-btn" id="nav-sheet" onclick="showSheet()"><span class="nav-icon">&#9638;</span><span class="nav-label">Sheet</span></button>
     <button class="nav-btn" id="nav-export" onclick="exportData()"><span class="nav-icon">&#8593;</span><span class="nav-label">Export</span></button>
   </div>
@@ -546,7 +582,7 @@ async function syncFromCloud(){
     rows.forEach(r=>{db[r.prop_id]={userNotes:r.user_notes||'',userNotesAuthor:r.user_notes_author||'',userNotesTs:r.user_notes_ts||'',directives:r.directives||'',directivesAuthor:r.directives_author||'',directivesTs:r.directives_ts||'',questionsList:r.questions_list||[],spentDollars:r.spent_dollars||'',actualHrs:r.actual_hrs||'',userStatus:r.user_status||'',completed:r.completed||false,source:r.source||'',strikePlan:r.strike_plan||'',refImgs:(im[r.prop_id]||{}).ref||[],srcImgs:(im[r.prop_id]||{}).src||[]};});
     await loadActionSummary();
     try{const nr=await sbGet('prop_notes','select=prop_id&active=eq.true');const c={};nr.forEach(x=>c[x.prop_id]=(c[x.prop_id]||0)+1);NOTE_COUNTS=c;}catch(e){}
-    try{const pr=await sbGet('prop_purchases','select=prop_id,cost&active=eq.true');const t={};pr.forEach(x=>{t[x.prop_id]=t[x.prop_id]||{n:0,total:0};t[x.prop_id].n++;t[x.prop_id].total+=Number(x.cost)||0;});PURCH_TOTALS=t;}catch(e){}
+    try{const pr=await sbGet('prop_purchases','select=prop_id,cost&active=eq.true');const t={};pr.forEach(x=>{const k=x.prop_id||'_general';t[k]=t[k]||{n:0,total:0};t[k].n++;t[k].total+=Number(x.cost)||0;});PURCH_TOTALS=t;}catch(e){}
     window.__synced=true;saveDBLocal(db);setSyncStatus('ok','Synced '+PROPS_DATA.length+' props');setTimeout(hideSyncBar,2500);return true;
   }catch(e){console.error(e);setSyncStatus('err','Offline \u2014 using local data');setTimeout(hideSyncBar,3000);return false;}
 }
@@ -1180,7 +1216,7 @@ function removedToggle(k,n){if(!n)return'';const open=extrasOpen[k];return '<but
 function renderPurchases(){const e=EXTRAS[currentPropId];if(!e||!e.loaded)return '<div class="hist-list"><div class="hist-item">Loading…</div></div>';if(e.err)return tableMissingMsg();
   const act=e.purchases.filter(x=>x.active),off=e.purchases.filter(x=>!x.active);
   const rcpts=e.files.filter(f=>f.kind==='receipt'&&f.active&&f.purchase_id);
-  const row=(x,on)=>{const rc=rcpts.filter(f=>f.purchase_id===x.id);
+  const row=(x,on)=>{const rc=rcpts.filter(f=>f.purchase_id===x.id);const bl=rc.map(budgetLinkOf).find(Boolean);if(bl&&on)return budgetPurchRow(x,rc,bl);
     return '<tr class="'+(on?'':'off')+'"><td><input value="'+esc(x.item||'')+'" placeholder="Item" onchange="editPurchase(\''+x.id+'\',\'item\',this.value)"'+(on?'':' disabled')+'></td>'
     +'<td><input value="'+esc(x.vendor||'')+'" placeholder="Where" onchange="editPurchase(\''+x.id+'\',\'vendor\',this.value)"'+(on?'':' disabled')+'></td>'
     +'<td><input class="num" inputmode="decimal" value="'+(x.cost??'')+'" placeholder="$" onchange="editPurchase(\''+x.id+'\',\'cost\',this.value)"'+(on?'':' disabled')+'></td>'
@@ -1249,7 +1285,7 @@ function renderFiles(kind){const e=EXTRAS[currentPropId];if(!e||!e.loaded)return
       +(kind==='email'&&f.file_name&&url?'<div class="hist-when"><a href="'+url+'" target="_blank">📎 '+esc(f.file_name)+'</a> '+fmtSize(f.size_bytes)+'</div>':'')
       +(kind==='email'?(()=>{const nums=noteNumbers(e.notes||[]);const refs=(e.notes||[]).filter(n=>n.active&&n.email_id===f.id);return refs.length?'<div class="hist-when">\ud83d\udcdd in note '+refs.map(n=>'#'+nums[n.id]).join(', ')+'</div>':'';})():'')
       +(f.body?'<details><summary>Show email text</summary><pre class="email-body">'+esc(f.body)+'</pre></details>':'')
-      +'</div><button class="file-act" title="'+(on?'Remove (kept in record)':'Restore')+'" onclick="setFileActive(\''+f.id+'\','+(on?'false':'true')+')">'+(on?'⊘':'↺')+'</button></div>';};
+      +'</div>'+(budgetLinkOf(f)?'<button class="file-act" title="Edit in Budget" onclick="showBudget(\''+budgetLinkOf(f).budget+'\')">$›</button>':'<button class="file-act" title="'+(on?'Remove (kept in record)':'Restore')+'" onclick="setFileActive(\''+f.id+'\','+(on?'false':'true')+')">'+(on?'⊘':'↺')+'</button>')+'</div>';};
   let form='';
   if(kind==='email'&&emailFormOpen)form='<div class="email-form"><input id="em-subject" class="modal-input" placeholder="Subject"><div style="display:flex;gap:6px"><input id="em-from" class="modal-input" placeholder="From"><input id="em-date" type="date" class="modal-input" value="'+todayISO()+'"></div><textarea id="em-body" class="modal-input" rows="6" placeholder="Paste the email text here…"></textarea><div style="display:flex;gap:6px;justify-content:flex-end"><button class="modal-cancel" onclick="toggleEmailForm()">Cancel</button><button class="modal-save" onclick="savePastedEmail()">Save email</button></div></div>';
   return form+'<div class="file-list">'+(act.length?act.map(f=>item(f,true)).join(''):'<div class="hist-item" style="color:var(--muted)">None yet.</div>')+'</div>'
@@ -1485,10 +1521,10 @@ async function saveNewProp(){
   catch(e){setSyncStatus('err','Failed to save prop');}
 }
 
-function showView(name){['list-view','detail-view','dash-view','questions-view','sheet-view','reports-view'].forEach(id=>{document.getElementById(id).style.display=id===name+'-view'?'block':'none';});setPrevNext(name==='detail');if(name!=='detail'){const np=document.getElementById('nav-pos');if(np)np.textContent='';}document.getElementById('search-bar').style.display=name==='list'?'block':'none';document.getElementById('filter-bar').style.display=name==='list'?'flex':'none';}
+function showView(name){['list-view','detail-view','dash-view','questions-view','sheet-view','reports-view','budget-view'].forEach(id=>{document.getElementById(id).style.display=id===name+'-view'?'block':'none';});setPrevNext(name==='detail');if(name!=='detail'){const np=document.getElementById('nav-pos');if(np)np.textContent='';}document.getElementById('search-bar').style.display=name==='list'?'block':'none';document.getElementById('filter-bar').style.display=name==='list'?'flex':'none';}
 function showList(){histFlushAll();heroEditing=false;currentView='list';currentPropId=null;showView('list');document.getElementById('header-back').style.display='none';document.getElementById('add-prop-btn').style.display='block';document.getElementById('header-title').innerHTML=esc(showCfg().name)+' <span class="show-caret">\u25be</span>';document.getElementById('header-sub').textContent='Props Design & Management';renderList();updateNav('list');}
 function showDash(){currentView='dash';currentPropId=null;showView('dash');document.getElementById('header-back').style.display='none';document.getElementById('add-prop-btn').style.display='none';document.getElementById('header-title').textContent='Dashboard';document.getElementById('header-sub').textContent=showCfg().name;renderDash();updateNav('dash');}
-function updateNav(active){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));const m={list:'nav-list',dash:'nav-dash',questions:'nav-questions',sheet:'nav-sheet',reports:'nav-reports'};if(m[active])document.getElementById(m[active])?.classList.add('active');}
+function updateNav(active){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));const m={list:'nav-list',dash:'nav-dash',questions:'nav-questions',sheet:'nav-sheet',reports:'nav-reports',budget:'nav-budget'};if(m[active])document.getElementById(m[active])?.classList.add('active');}
 
 function renderDash(){
   const db=loadDB();const PROPS_DATA=liveProps();const total=PROPS_DATA.length;
@@ -1595,7 +1631,7 @@ async function renderSheet(reload){
     const row=(l,v,bad)=>'<tr class="over"><td>'+l+'</td><td colspan="8" class="num'+(bad?' bad':'')+'">'+v+'</td></tr>';
     body+='<tr><td colspan="9" style="border:none;height:10px"></td></tr>'
       +row('Budget allocated',money(BUDGET_TOTAL))+row('Reserve ('+(BUDGET_RESERVE*100)+'%)',money(BUDGET_TOTAL*BUDGET_RESERVE))+row('Usable budget',money(usable))
-      +row('Forecast (low – high)',money(T.low)+' – '+money(T.high),T.high>usable)+row('Remaining vs. high forecast',money(usable-T.high),usable-T.high<0)+row('Spent to date',money(T.spent))+row('Remaining vs. spent',money(usable-T.spent),usable-T.spent<0)
+      +row('Forecast (low – high)',money(T.low)+' – '+money(T.high),T.high>usable)+row('Remaining vs. high forecast',money(usable-T.high),usable-T.high<0)+(()=>{const gs=(SHEET_CACHE.purch||[]).filter(x=>x.active&&(!x.prop_id||x.prop_id==='_general')).reduce((a,x)=>a+(Number(x.cost)||0),0);const sp=T.spent+gs;return (gs?row('Props spent',money(T.spent))+row('Shop / General (receipts)',money(gs)):'')+row('Spent to date',money(sp))+row('Remaining vs. spent',money(usable-sp),usable-sp<0);})()
       +row('Shop hours budget',HOURS_BUDGET)+row('Forecast hours',T.hrs,T.hrs>HOURS_BUDGET)+row('Actual hours to date',T.actual,T.actual>HOURS_BUDGET)+row('Hours remaining vs. forecast',HOURS_BUDGET-T.hrs,HOURS_BUDGET-T.hrs<0);
     body+='</tbody></table>';
   }else if(sheetTab==='purch'){
@@ -1693,7 +1729,7 @@ async function downloadWorkbook(){
     const tr=bs.getRow(r);tr.values=['TOTAL',T.n,T.done,T.low,T.high,T.spent,T.hrs,T.actual,T.tbd];tr.eachCell(c=>{c.font={bold:true,color:{argb:PARCH}};c.fill=fill(INK);});
     for(let i=5;i<=r;i++)[4,5,6].forEach(ci=>bs.getCell(i,ci).numFmt=$fmt);
     r+=2;const usable=BUDGET_TOTAL*(1-BUDGET_RESERVE);
-    const kv=[['Budget allocated',BUDGET_TOTAL,1],['Reserve ('+BUDGET_RESERVE*100+'%)',BUDGET_TOTAL*BUDGET_RESERVE,1],['Usable budget',usable,1],['Forecast low',T.low,1],['Forecast high',T.high,1],['Remaining vs. high forecast',usable-T.high,1],['Spent to date',T.spent,1],['Remaining vs. spent',usable-T.spent,1],['Shop hours budget',HOURS_BUDGET,0],['Forecast hours',T.hrs,0],['Actual hours to date',T.actual,0],['Hours remaining vs. forecast',HOURS_BUDGET-T.hrs,0]];
+    const kv=[['Budget allocated',BUDGET_TOTAL,1],['Reserve ('+BUDGET_RESERVE*100+'%)',BUDGET_TOTAL*BUDGET_RESERVE,1],['Usable budget',usable,1],['Forecast low',T.low,1],['Forecast high',T.high,1],['Remaining vs. high forecast',usable-T.high,1],...(()=>{const gs=(SHEET_CACHE.purch||[]).filter(x=>x.active&&(!x.prop_id||x.prop_id==='_general')).reduce((a,x)=>a+(Number(x.cost)||0),0);return [...(gs?[['Props spent',T.spent,1],['Shop / General (receipts)',gs,1]]:[]),['Spent to date',T.spent+gs,1],['Remaining vs. spent',usable-T.spent-gs,1]];})(),['Shop hours budget',HOURS_BUDGET,0],['Forecast hours',T.hrs,0],['Actual hours to date',T.actual,0],['Hours remaining vs. forecast',HOURS_BUDGET-T.hrs,0]];
     kv.forEach(([k,v,isMoney])=>{const a=bs.getCell(r,1),b=bs.getCell(r,2);a.value=k;a.font={bold:true};b.value=v;if(isMoney)b.numFmt=$fmt;if(v<0||(k==='Forecast hours'&&v>HOURS_BUDGET)||(k==='Forecast high'&&v>usable))b.font={bold:true,color:{argb:RED}};bs.mergeCells(r,2,r,3);r++;});
 
     // --- Flags & Questions ---
@@ -1772,6 +1808,207 @@ initPropsFromCache();
 renderList();
 checkIdentity();
 document.getElementById('list-view').style.display='block';
+
+// ===================== BUDGET (receipts → line items → props) =====================
+// No schema changes: a receipt is a prop_files row (kind 'budget_receipt', prop_id '_general').
+// Each line item is a normal prop_purchases row on its prop (or '_general' = Shop / General),
+// plus a prop_files "receipt" row on the same prop that links the line to the receipt
+// (purchase_id = line, note = {"budget":<receipt id>,"base":<pre-tax amount>}).
+// Tax is spread across lines in proportion to their pre-tax amounts, so purchase costs include tax.
+const GEN_ID='_general';
+let BUDGET=null, BUDGET_OPEN=null, BUDGET_BUSY=false;
+function isGen(pid){return !pid||pid===GEN_ID;}
+function budgetLinkOf(f){if(!f||f.kind!=='receipt'||!f.note||!f.purchase_id)return null;try{const j=JSON.parse(f.note);return j&&j.budget?j:null;}catch{return null;}}
+function budgetMetaOf(m){try{const j=JSON.parse(m.note||'{}');return {tax:numOr(j.tax)||0,total:numOr(j.total),memo:j.memo||''};}catch{return {tax:0,total:null,memo:''};}}
+function propLabel(pid){if(isGen(pid))return 'Shop / General';const p=PROPS_DATA.find(x=>x.id===pid);return p?p.name:pid;}
+function cents(v){return Math.round((Number(v)||0)*100);}
+
+function showBudget(openId){histFlushAll();heroEditing=false;currentView='budget';currentPropId=null;showView('budget');
+  document.getElementById('header-back').style.display='none';document.getElementById('add-prop-btn').style.display='none';setPrevNext(false);
+  document.getElementById('header-title').textContent='Budget';document.getElementById('header-sub').textContent=showCfg().name+' · receipts';updateNav('budget');
+  if(openId)BUDGET_OPEN=openId;renderBudget(true);}
+
+async function loadBudget(){
+  const [files,purch]=await Promise.all([sbGet('prop_files','kind=in.(budget_receipt,receipt)&order=created_at.asc'),sbGet('prop_purchases','order=created_at.asc')]);
+  const byId={};purch.forEach(p=>byId[p.id]=p);
+  const receipts=files.filter(f=>f.kind==='budget_receipt').map(m=>({m,meta:budgetMetaOf(m),lines:[]}));
+  const rById={};receipts.forEach(r=>rById[r.m.id]=r);const linked=new Set();
+  files.forEach(f=>{const l=budgetLinkOf(f);if(!l)return;const r=rById[l.budget];const p=byId[f.purchase_id];if(!r||!p)return;linked.add(p.id);r.lines.push({f,p,base:numOr(l.base)??numOr(p.cost)??0});});
+  BUDGET={receipts,purch,legacy:purch.filter(p=>p.active&&!linked.has(p.id)),loadedAt:Date.now()};
+  budgetRecountTotals();return BUDGET;}
+function budgetRecountTotals(){if(!BUDGET)return;const t={};BUDGET.purch.filter(p=>p.active).forEach(x=>{const k=x.prop_id||GEN_ID;t[k]=t[k]||{n:0,total:0};t[k].n++;t[k].total+=Number(x.cost)||0;});PURCH_TOTALS=t;}
+function budgetTouch(pids){pids.forEach(pid=>{if(pid&&EXTRAS[pid])delete EXTRAS[pid];});SHEET_CACHE=null;}
+
+// ---- totals for one receipt
+function rcptCalc(r){const act=r.lines.filter(l=>l.p.active&&l.f.active);const sub=act.reduce((a,l)=>a+cents(l.base),0);const tax=cents(r.meta.tax);
+  const paid=act.reduce((a,l)=>a+cents(l.p.cost),0);const tot=r.meta.total==null?null:cents(r.meta.total);
+  return {act,sub:sub/100,tax:tax/100,lines:(sub+tax)/100,paid:paid/100,total:tot==null?null:tot/100,diff:tot==null?null:(tot-sub-tax)/100};}
+function rcptStatus(r){const c=rcptCalc(r);if(!r.m.active)return ['off','Removed'];if(c.total==null)return ['warn',c.act.length?'Enter receipt total':'New — add total & items'];
+  if(Math.abs(c.diff)<0.005)return ['ok','✓ Balanced'];return c.diff>0?['warn',money(c.diff)+' left to assign']:['bad',money(-c.diff)+' over receipt total'];}
+
+// ---- tax allocation (largest-remainder so the cents add up exactly)
+function allocate(r){const act=r.lines.filter(l=>l.p.active&&l.f.active);const taxC=cents(r.meta.tax);
+  const w=act.map(l=>Math.max(cents(l.base),0));const W=w.reduce((a,b)=>a+b,0);
+  const raw=act.map((l,i)=>W?taxC*w[i]/W:0);const fl=raw.map(Math.floor);let rem=taxC-fl.reduce((a,b)=>a+b,0);
+  if(!W)rem=0;const order=raw.map((v,i)=>[v-fl[i],i]).sort((a,b)=>b[0]-a[0]);for(let k=0;k<order.length&&rem>0;k++,rem--)fl[order[k][1]]++;
+  return act.map((l,i)=>({l,cost:(cents(l.base)+fl[i])/100}));}
+async function reallocate(r){const out=allocate(r);const touched=new Set();
+  for(const {l,cost} of out){if(Math.abs((Number(l.p.cost)||0)-cost)<0.0005)continue;await sbPatch('prop_purchases','id=eq.'+l.p.id,{cost});l.p.cost=cost;touched.add(l.p.prop_id);}
+  budgetTouch([...touched]);budgetRecountTotals();}
+
+async function budgetRun(label,fn){if(BUDGET_BUSY)return;BUDGET_BUSY=true;setSyncStatus('syncing',label+'…');
+  try{await fn();setSyncStatus('ok','Saved');setTimeout(hideSyncBar,1200);showToast();}
+  catch(e){console.error(e);setSyncStatus('err','Could not save');alert('Could not save. '+(e.message||''));}
+  finally{BUDGET_BUSY=false;renderBudget(false);}}
+
+// ---- receipts
+async function insertWithGenFallback(table,row){try{return await sbInsert(table,[row]);}
+  catch(e){if(row.prop_id===GEN_ID&&/foreign key|violates/i.test(e.message||'')){return await sbInsert(table,[{...row,prop_id:null}]);}throw e;}}
+function budgetPickFiles(){document.getElementById('bg-file').click();}
+async function budgetNewReceipts(input){const files=Array.from(input?.files||[]);if(input)input.value='';
+  await budgetRun(files.length?'Uploading receipt'+(files.length>1?'s':''):'Adding receipt',async()=>{
+    const list=files.length?files:[null];let last=null;
+    for(const f of list){const up=f?await uploadFile(f,'_budget/receipts'):{};
+      const [m]=await insertWithGenFallback('prop_files',{prop_id:GEN_ID,kind:'budget_receipt',file_name:up.file_name||null,storage_path:up.path||null,mime:up.mime||null,size_bytes:up.size_bytes||null,subject:'',sent_on:todayISO(),note:JSON.stringify({tax:0,total:null,memo:''}),added_by:currentUser||'Unknown'});
+      BUDGET.receipts.push({m,meta:budgetMetaOf(m),lines:[]});last=m.id;
+      logChange(GEN_ID,'receipt','',f?'Uploaded budget receipt '+f.name:'Added budget receipt (no file)',true);}
+    BUDGET_OPEN=last;});
+  setTimeout(()=>document.getElementById('bg-vendor-'+BUDGET_OPEN)?.focus(),80);}
+function budgetAttach(rid){const i=document.getElementById('bg-attach');i.dataset.rid=rid;i.click();}
+async function budgetAttachFile(input){const rid=input.dataset.rid;const f=(input.files||[])[0];input.value='';if(!f)return;const r=BUDGET.receipts.find(x=>x.m.id===rid);if(!r)return;
+  await budgetRun('Uploading file',async()=>{const up=await uploadFile(f,'_budget/receipts');const body={file_name:up.file_name,storage_path:up.path,mime:up.mime,size_bytes:up.size_bytes};
+    await sbPatch('prop_files','id=eq.'+rid,body);Object.assign(r.m,body);
+    for(const l of r.lines){await sbPatch('prop_files','id=eq.'+l.f.id,body);Object.assign(l.f,body);}
+    budgetTouch(r.lines.map(l=>l.p.prop_id));logChange(GEN_ID,'receipt','','Attached '+f.name+' to receipt '+(r.m.subject||''),true);});}
+async function budgetMeta(rid,field,value){const r=BUDGET.receipts.find(x=>x.m.id===rid);if(!r)return;
+  await budgetRun('Saving receipt',async()=>{
+    if(field==='subject'||field==='sent_on'){const v=field==='sent_on'?(value||null):value.trim();if((r.m[field]||'')===(v||''))return;
+      await sbPatch('prop_files','id=eq.'+rid,{[field]:v});r.m[field]=v;
+      const pf=field==='subject'?'vendor':'purchased_on';
+      for(const l of r.lines){await sbPatch('prop_purchases','id=eq.'+l.p.id,{[pf]:v});l.p[pf]=v;}
+      budgetTouch(r.lines.map(l=>l.p.prop_id));return;}
+    const meta={...r.meta};if(field==='tax')meta.tax=numOr(value)||0;if(field==='total')meta.total=numOr(value);if(field==='memo')meta.memo=value;
+    await sbPatch('prop_files','id=eq.'+rid,{note:JSON.stringify(meta)});r.meta=meta;r.m.note=JSON.stringify(meta);
+    if(field==='tax')await reallocate(r);});}
+async function budgetRemoveReceipt(rid,on){const r=BUDGET.receipts.find(x=>x.m.id===rid);if(!r)return;
+  if(!on&&!confirm('Remove this receipt and its '+r.lines.filter(l=>l.p.active).length+' line item(s) from the totals? It stays in the record and can be restored.'))return;
+  await budgetRun(on?'Restoring receipt':'Removing receipt',async()=>{await sbPatch('prop_files','id=eq.'+rid,{active:on});r.m.active=on;
+    for(const l of r.lines){if(l.f.active===on&&l.p.active===on)continue;await sbPatch('prop_purchases','id=eq.'+l.p.id,{active:on});await sbPatch('prop_files','id=eq.'+l.f.id,{active:on});l.p.active=on;l.f.active=on;
+      if(!isGen(l.p.prop_id))logChange(l.p.prop_id,'purchase','',(on?'Restored ':'Removed ')+'"'+(l.p.item||'item')+'" '+money(l.p.cost)+' (receipt '+(r.m.subject||'')+')',true);}
+    if(on)await reallocate(r);budgetTouch(r.lines.map(l=>l.p.prop_id));budgetRecountTotals();
+    logChange(GEN_ID,'receipt','',(on?'Restored':'Removed')+' budget receipt '+(r.m.subject||''),true);});}
+
+// ---- line items
+async function budgetAddLine(rid){const r=BUDGET.receipts.find(x=>x.m.id===rid);if(!r)return;
+  const g=id=>document.getElementById(id);const item=g('bl-new-item-'+rid).value.trim(),pid=g('bl-new-prop-'+rid).value,base=numOr(g('bl-new-amt-'+rid).value);
+  if(!item&&base==null)return alert('Add an item name and amount.');if(base==null)return alert('Add the amount (before tax) from the receipt.');
+  await budgetRun('Adding item',async()=>{
+    const [p]=await insertWithGenFallback('prop_purchases',{prop_id:pid,item:item||'Item',vendor:r.m.subject||'',cost:base,purchased_on:r.m.sent_on||todayISO(),added_by:currentUser||'Unknown'});
+    const [f]=await insertWithGenFallback('prop_files',{prop_id:p.prop_id??pid,kind:'receipt',file_name:r.m.file_name||('Receipt — '+(r.m.subject||'no file yet')),storage_path:r.m.storage_path||null,mime:r.m.mime||null,size_bytes:r.m.size_bytes||null,purchase_id:p.id,note:JSON.stringify({budget:rid,base}),added_by:currentUser||'Unknown'});
+    BUDGET.purch.push(p);r.lines.push({f,p,base});await reallocate(r);
+    if(!isGen(p.prop_id)){logChange(p.prop_id,'purchase','','Added "'+p.item+'" '+money(p.cost)+(r.m.subject?' from '+r.m.subject:'')+' (via Budget receipt)',true);actionsOnPurchase(p.prop_id,p.item,p.cost,r.m.subject);}
+    budgetTouch([p.prop_id]);});
+  setTimeout(()=>document.getElementById('bl-new-item-'+rid)?.focus(),80);}
+function lineOf(fid){for(const r of BUDGET.receipts){const l=r.lines.find(x=>x.f.id===fid);if(l)return [r,l];}return [null,null];}
+async function budgetLine(fid,field,value){const [r,l]=lineOf(fid);if(!l)return;
+  await budgetRun('Saving item',async()=>{
+    if(field==='item'){const v=value.trim();if(v===(l.p.item||''))return;await sbPatch('prop_purchases','id=eq.'+l.p.id,{item:v});const old=l.p.item;l.p.item=v;
+      if(!isGen(l.p.prop_id))logChange(l.p.prop_id,'purchase','','Renamed "'+(old||'item')+'" → "'+v+'" (Budget)',true);budgetTouch([l.p.prop_id]);return;}
+    if(field==='base'){const v=numOr(value)??0;if(cents(v)===cents(l.base))return;await sbPatch('prop_files','id=eq.'+l.f.id,{note:JSON.stringify({budget:r.m.id,base:v})});l.base=v;l.f.note=JSON.stringify({budget:r.m.id,base:v});await reallocate(r);
+      if(!isGen(l.p.prop_id))logChange(l.p.prop_id,'purchase','','Edited "'+(l.p.item||'item')+'" cost → '+money(l.p.cost)+' (Budget)',true);budgetTouch([l.p.prop_id]);return;}
+    if(field==='prop'){const to=value||GEN_ID,from=l.p.prop_id||GEN_ID;if(to===from)return;
+      let stored=to;try{await sbPatch('prop_purchases','id=eq.'+l.p.id,{prop_id:to});}catch(e){if(to===GEN_ID){stored=null;await sbPatch('prop_purchases','id=eq.'+l.p.id,{prop_id:null});}else throw e;}
+      await sbPatch('prop_files','id=eq.'+l.f.id,{prop_id:stored});l.p.prop_id=stored;l.f.prop_id=stored;
+      if(!isGen(from))logChange(from,'purchase','','Moved "'+(l.p.item||'item')+'" '+money(l.p.cost)+' to '+propLabel(to)+' (Budget)',true);
+      if(!isGen(to)){logChange(to,'purchase','','Added "'+(l.p.item||'item')+'" '+money(l.p.cost)+(r.m.subject?' from '+r.m.subject:'')+' (moved from '+propLabel(from)+')',true);actionsOnPurchase(to,l.p.item,l.p.cost,r.m.subject);}
+      budgetTouch([from,to]);budgetRecountTotals();}});}
+async function budgetRemoveLine(fid,on){const [r,l]=lineOf(fid);if(!l)return;
+  await budgetRun(on?'Restoring item':'Removing item',async()=>{await sbPatch('prop_purchases','id=eq.'+l.p.id,{active:on});await sbPatch('prop_files','id=eq.'+l.f.id,{active:on});l.p.active=on;l.f.active=on;await reallocate(r);
+    if(!isGen(l.p.prop_id))logChange(l.p.prop_id,'purchase','',(on?'Restored ':'Removed ')+'"'+(l.p.item||'item')+'" '+money(l.p.cost)+' (Budget)',true);budgetTouch([l.p.prop_id]);budgetRecountTotals();});}
+
+// ---- UI
+function budgetPropOptions(sel){const live=liveProps();const groups={};live.forEach(p=>{const k=(p.section||'')+' · '+(p.group||'');(groups[k]=groups[k]||[]).push(p);});
+  let h='<option value="'+GEN_ID+'"'+(isGen(sel)?' selected':'')+'>Shop / General (not a prop)</option>';
+  if(sel&&!isGen(sel)&&!live.some(p=>p.id===sel))h+='<option value="'+esc(sel)+'" selected>'+esc(propLabel(sel))+' (archived)</option>';
+  Object.keys(groups).forEach(k=>{h+='<optgroup label="'+esc(k)+'">'+groups[k].map(p=>'<option value="'+esc(p.id)+'"'+(p.id===sel?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</optgroup>';});return h;}
+function budgetThumb(m,big){const url=m.storage_path?fileUrl(m.storage_path):'';if(!url)return '<div class="bg-thumb empty'+(big?' big':'')+'">🧾</div>';
+  return /^image\//.test(m.mime||'')?'<a href="'+url+'" target="_blank" onclick="event.stopPropagation()"><img class="bg-thumb'+(big?' big':'')+'" src="'+url+'" loading="lazy"></a>':'<a class="bg-thumb pdf'+(big?' big':'')+'" href="'+url+'" target="_blank" onclick="event.stopPropagation()">📄</a>';}
+function budgetEditor(r){const id=r.m.id,c=rcptCalc(r),on=r.m.active;const alloc={};allocate(r).forEach(x=>alloc[x.l.f.id]=x.cost);
+  const dis=on?'':' disabled';
+  const line=l=>{const live=l.p.active&&l.f.active;
+    return '<div class="bl-row'+(live?'':' off')+'"><input class="bl-item" value="'+esc(l.p.item||'')+'" placeholder="Item" onchange="budgetLine(\''+l.f.id+'\',\'item\',this.value)"'+(live&&on?'':' disabled')+'>'
+      +'<select class="bl-prop" onchange="budgetLine(\''+l.f.id+'\',\'prop\',this.value)"'+(live&&on?'':' disabled')+'>'+budgetPropOptions(l.p.prop_id)+'</select>'
+      +'<input class="bl-amt" inputmode="decimal" value="'+(l.base??'')+'" placeholder="$" title="Amount before tax" onchange="budgetLine(\''+l.f.id+'\',\'base\',this.value)"'+(live&&on?'':' disabled')+'>'
+      +'<span class="bl-taxed" title="With its share of tax — this is what the prop is charged">'+money(live?(alloc[l.f.id]??l.p.cost):l.p.cost)+'</span>'
+      +'<span class="bl-acts">'+(!isGen(l.p.prop_id)?'<button title="Open prop" onclick="openProp(\''+esc(l.p.prop_id)+'\')">›</button>':'')
+      +(on?(live?'<button title="Remove (kept in record)" onclick="budgetRemoveLine(\''+l.f.id+'\',false)">⊘</button>':'<button title="Restore" onclick="budgetRemoveLine(\''+l.f.id+'\',true)">↺</button>'):'')+'</span></div>';};
+  const liveL=r.lines.filter(l=>l.p.active&&l.f.active),offL=r.lines.filter(l=>!(l.p.active&&l.f.active));
+  return '<div class="bg-editor">'
+    +'<div class="bg-meta">'
+      +'<label>Store / vendor<input id="bg-vendor-'+id+'" class="modal-input" value="'+esc(r.m.subject||'')+'" placeholder="e.g. Michaels" onchange="budgetMeta(\''+id+'\',\'subject\',this.value)"'+dis+'></label>'
+      +'<label>Date<input type="date" class="modal-input" value="'+(r.m.sent_on||'')+'" onchange="budgetMeta(\''+id+'\',\'sent_on\',this.value)"'+dis+'></label>'
+      +'<label>Tax<input class="modal-input" inputmode="decimal" value="'+(r.meta.tax||'')+'" placeholder="$0.00" onchange="budgetMeta(\''+id+'\',\'tax\',this.value)"'+dis+'></label>'
+      +'<label>Receipt total<input class="modal-input" inputmode="decimal" value="'+(r.meta.total??'')+'" placeholder="$ as printed" onchange="budgetMeta(\''+id+'\',\'total\',this.value)"'+dis+'></label>'
+      +'<label class="full">Memo<input class="modal-input" value="'+esc(r.meta.memo||'')+'" placeholder="Optional (card used, who bought it, reimbursement #…)" onchange="budgetMeta(\''+id+'\',\'memo\',this.value)"'+dis+'></label>'
+    +'</div>'
+    +'<div class="bl-head"><span>Item</span><span>Assign to</span><span>Amount</span><span>w/ tax</span><span></span></div>'
+    +(liveL.length?liveL.map(line).join(''):'<div class="hist-when" style="padding:8px 2px">No items yet — add each line from the receipt below.</div>')
+    +(on?'<div class="bl-row new"><input id="bl-new-item-'+id+'" class="bl-item" placeholder="New item (as on receipt)" onkeydown="if(event.key===\'Enter\')document.getElementById(\'bl-new-amt-'+id+'\').focus()">'
+      +'<select id="bl-new-prop-'+id+'" class="bl-prop">'+budgetPropOptions(GEN_ID)+'</select>'
+      +'<input id="bl-new-amt-'+id+'" class="bl-amt" inputmode="decimal" placeholder="$ pre-tax" onkeydown="if(event.key===\'Enter\')budgetAddLine(\''+id+'\')">'
+      +'<span></span><span class="bl-acts"><button class="img-zone-add-btn" onclick="budgetAddLine(\''+id+'\')">+ Add</button></span></div>':'')
+    +'<div class="bg-totals"><span>Items '+money(c.sub)+'</span><span>Tax '+money(c.tax)+'</span><span><b>Items + tax '+money(c.lines)+'</b></span>'
+      +(c.total!=null?'<span class="'+(Math.abs(c.diff)<0.005?'ok':(c.diff>0?'warn':'bad'))+'">Receipt '+money(c.total)+(Math.abs(c.diff)<0.005?' ✓':' · '+(c.diff>0?money(c.diff)+' left':money(-c.diff)+' over'))+'</span>':'')+'</div>'
+    +(offL.length?'<details class="bg-off"><summary>'+offL.length+' removed item'+(offL.length>1?'s':'')+'</summary>'+offL.map(line).join('')+'</details>':'')
+    +'<div class="bg-foot">'+(on?'<button class="modal-cancel" onclick="budgetAttach(\''+id+'\')">'+(r.m.storage_path?'Replace file':'Attach file')+'</button>':'')
+      +'<span class="hist-when">Added '+fmtDate(r.m.created_at)+' by '+esc(r.m.added_by||'')+'</span>'
+      +'<button class="modal-cancel" onclick="budgetRemoveReceipt(\''+id+'\','+(on?'false':'true')+')">'+(on?'Remove receipt':'Restore receipt')+'</button></div>'
+    +'</div>';}
+function budgetToggle(rid){BUDGET_OPEN=BUDGET_OPEN===rid?null:rid;renderBudget(false);if(BUDGET_OPEN)setTimeout(()=>document.getElementById('bg-r-'+rid)?.scrollIntoView({behavior:'smooth',block:'start'}),60);}
+let budgetShowRemoved=false;
+async function renderBudget(reload){const el=document.getElementById('budget-view');if(!el)return;
+  if(reload||!BUDGET){if(!BUDGET)el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-size:12px">Loading…</div>';
+    try{await loadBudget();}catch(e){console.error(e);el.innerHTML='<div class="detail-card">'+tableMissingMsg()+'</div>';return;}}
+  const B=BUDGET;const act=B.purch.filter(p=>p.active);const spent=act.reduce((a,p)=>a+(Number(p.cost)||0),0);
+  const gen=act.filter(p=>isGen(p.prop_id)).reduce((a,p)=>a+(Number(p.cost)||0),0);
+  const usable=BUDGET_TOTAL*(1-BUDGET_RESERVE);const left=usable-spent;const pct=usable?Math.min(100,spent/usable*100):0;
+  const live=B.receipts.filter(r=>r.m.active).sort((a,b)=>String(b.m.sent_on||'').localeCompare(String(a.m.sent_on||''))||String(b.m.created_at).localeCompare(String(a.m.created_at)));
+  const off=B.receipts.filter(r=>!r.m.active);
+  const toAssign=live.reduce((a,r)=>{const c=rcptCalc(r);return a+(c.diff&&c.diff>0.005?c.diff:0);},0);
+  const card=r=>{const c=rcptCalc(r);const [cls,txt]=rcptStatus(r);const open=BUDGET_OPEN===r.m.id;
+    return '<div class="detail-card bg-card'+(r.m.active?'':' off')+(open?' open':'')+'" id="bg-r-'+r.m.id+'">'
+      +'<div class="bg-head" onclick="budgetToggle(\''+r.m.id+'\')">'+budgetThumb(r.m,false)
+      +'<div class="bg-main"><div class="bg-vendor">'+esc(r.m.subject||'New receipt')+'</div><div class="hist-when">'+(r.m.sent_on?fmtDate(r.m.sent_on)+' · ':'')+c.act.length+' item'+(c.act.length===1?'':'s')+' · '+money(c.total!=null?c.total:c.lines)+'</div>'
+      +'<div class="bg-props">'+[...new Set(c.act.map(l=>propLabel(l.p.prop_id)))].slice(0,4).map(n=>'<span class="rr-chip">'+esc(n)+'</span>').join('')+(new Set(c.act.map(l=>l.p.prop_id)).size>4?'<span class="hist-when">+more</span>':'')+'</div></div>'
+      +'<span class="bg-status '+cls+'">'+txt+'</span></div>'
+      +(open?'<div class="bg-body">'+(r.m.storage_path?'<div class="bg-preview">'+budgetThumb(r.m,true)+'</div>':'')+budgetEditor(r)+'</div>':'')+'</div>';};
+  el.innerHTML='<div class="dash-title">Budget</div>'
+    +'<div class="dash-stat-grid">'
+      +'<div class="dash-stat highlight"><div class="dash-stat-num">'+money(spent)+'</div><div class="dash-stat-label">Spent</div></div>'
+      +'<div class="dash-stat'+(left<0?' bad':'')+'"><div class="dash-stat-num">'+money(left)+'</div><div class="dash-stat-label">Left of '+money(usable)+' usable</div></div>'
+      +'<div class="dash-stat"><div class="dash-stat-num">'+live.length+'</div><div class="dash-stat-label">Receipts</div></div>'
+      +'<div class="dash-stat'+(toAssign>0?' warn':'')+'"><div class="dash-stat-num">'+money(toAssign)+'</div><div class="dash-stat-label">On receipts, not assigned</div></div>'
+    +'</div>'
+    +'<div class="bg-meter"><div class="bg-meter-fill'+(left<0?' over':'')+'" style="width:'+pct+'%"></div></div>'
+    +'<div class="hist-when" style="margin:4px 2px 14px">Budget '+money(BUDGET_TOTAL)+' − '+(BUDGET_RESERVE*100)+'% reserve = '+money(usable)+' usable · Props '+money(spent-gen)+' · Shop / General '+money(gen)+'</div>'
+    +'<div class="bg-actions"><button class="modal-save" onclick="budgetPickFiles()">+ Upload receipt</button><button class="modal-cancel" onclick="budgetNewReceipts(null)">+ Receipt without file</button><button class="modal-cancel" onclick="budgetExportCSV()">Export CSV</button>'
+      +'<input type="file" id="bg-file" class="img-file-input" accept="image/*,application/pdf" multiple onchange="budgetNewReceipts(this)"><input type="file" id="bg-attach" class="img-file-input" accept="image/*,application/pdf" onchange="budgetAttachFile(this)"></div>'
+    +(live.length?live.map(card).join(''):'<div class="detail-card"><div class="hist-item" style="padding:14px;color:var(--muted)">No receipts yet. Upload a photo or PDF of a receipt, then add each line and assign it to a prop.</div></div>')
+    +(off.length?'<button class="img-archive-toggle" onclick="budgetShowRemoved=!budgetShowRemoved;renderBudget(false)">'+(budgetShowRemoved?'▾ Hide':'▸ Show')+' '+off.length+' removed receipt'+(off.length>1?'s':'')+'</button>'+(budgetShowRemoved?off.map(card).join(''):''):'')
+    +(B.legacy.length?'<div class="detail-card"><div class="img-zone-label"><span>Purchases logged on prop cards (no receipt here) · '+money(B.legacy.reduce((a,p)=>a+(Number(p.cost)||0),0))+'</span></div><div class="file-list">'
+      +B.legacy.slice().sort((a,b)=>String(b.purchased_on||'').localeCompare(String(a.purchased_on||''))).map(p=>'<div class="file-item" style="cursor:pointer" onclick="'+(isGen(p.prop_id)?'':'openProp(\''+esc(p.prop_id)+'\')')+'"><div class="file-main"><div class="file-name">'+esc(p.item||'Item')+' — '+money(p.cost)+'</div><div class="hist-when">'+esc(propLabel(p.prop_id))+(p.vendor?' · '+esc(p.vendor):'')+(p.purchased_on?' · '+fmtDate(p.purchased_on):'')+'</div></div></div>').join('')+'</div></div>':'');
+}
+async function budgetExportCSV(){if(!BUDGET)await loadBudget();const q=v=>{const s=String(v??'');return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+  const rows=[['Receipt date','Vendor','Receipt total','Receipt tax','Item','Assigned to','Section / Group','Pre-tax','Cost incl. tax','Receipt file','Memo','Added by']];
+  BUDGET.receipts.filter(r=>r.m.active).forEach(r=>{const url=r.m.storage_path?fileUrl(r.m.storage_path):'';const lines=r.lines.filter(l=>l.p.active&&l.f.active);
+    (lines.length?lines:[null]).forEach(l=>{const p=l?PROPS_DATA.find(x=>x.id===l.p.prop_id):null;rows.push([r.m.sent_on||'',r.m.subject||'',r.meta.total??'',r.meta.tax||0,l?l.p.item:'(no items yet)',l?propLabel(l.p.prop_id):'',p?(p.section+' / '+p.group):'',l?l.base:'',l?l.p.cost:'',url,r.meta.memo||'',r.m.added_by||'']);});});
+  BUDGET.legacy.forEach(p=>{const pr=PROPS_DATA.find(x=>x.id===p.prop_id);rows.push([p.purchased_on||'',p.vendor||'','','',p.item||'',propLabel(p.prop_id),pr?(pr.section+' / '+pr.group):'','',p.cost,'(logged on prop card)','',p.added_by||'']);});
+  const csv=rows.map(r=>r.map(q).join(',')).join('\n');
+  await shareOrDownload(new Blob([csv],{type:'text/csv'}),(showCfg().file_code||'Show')+'_Budget_'+todayISO()+'.csv');}
+
+function budgetPurchRow(x,rc,bl){return '<tr><td><input value="'+esc(x.item||'')+'" disabled></td><td><input value="'+esc(x.vendor||'')+'" disabled></td><td><input class="num" value="'+(x.cost??'')+'" disabled></td><td><input type="date" value="'+(x.purchased_on||'')+'" disabled></td>'
+  +'<td class="acts">'+rc.filter(f=>f.storage_path).slice(0,1).map(f=>'<a href="'+fileUrl(f.storage_path)+'" target="_blank" title="'+esc(f.file_name)+'">🧾</a>').join('')+'<button title="From a Budget receipt — edit it there" onclick="showBudget(\''+bl.budget+'\')">$›</button></td></tr>';}
+
 document.getElementById('add-prop-btn').style.display='block';
 syncFromCloud().then(ok=>{if(ok){migrateQuestions();renderList();if(currentView==='dash')renderDash();}});
 </script>
