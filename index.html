@@ -203,6 +203,8 @@ table.xl tr.over td.num.bad{color:#9B2C2C;font-weight:600}
 .sk-row{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
 .sk-name{font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.sk-name:hover{text-decoration:underline}.sk-sub{font-size:11px;color:var(--muted);margin-top:2px}
 .sk-locs{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.sk-loc{font-size:11px;font-weight:600;color:#fff;padding:3px 10px;border-radius:100px}.sk-loc.auto{opacity:.7}.sk-none{font-size:12px;color:var(--muted);font-style:italic}
+.sk-byfilter{display:flex;align-items:center;gap:8px;margin:0 0 12px}.sk-byfilter label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.sk-byfilter select{width:auto;min-width:180px;padding:7px 10px}
+.sk-by{display:flex;align-items:center;gap:8px;margin:0 0 8px}.sk-by span{font-size:11px;color:var(--muted)}.sk-by-sel{font-family:var(--font);font-size:13px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 8px}.sk-by-sel.empty{color:var(--muted);font-weight:400}
 .sk-note-text{font-size:13px;line-height:1.45;color:var(--ink);white-space:pre-wrap;background:rgba(201,150,58,.1);border-left:3px solid #C9963A;border-radius:6px;padding:7px 10px;cursor:text}
 .sk-note-add{background:none;border:none;padding:2px 0;font-family:var(--font);font-size:12px;color:var(--muted);cursor:pointer}.sk-note-add:hover{color:var(--ink)}
 .sk-note{width:100%;min-height:38px;overflow:hidden;line-height:1.45;font-family:var(--font);font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 9px;resize:vertical;outline:none}
@@ -1045,10 +1047,18 @@ const STRIKE_EXTRA=['Toss','Return to Other Department'];
 function stockSources(src){const stock=SOURCE_OPTS[0][1];return sourceList(src).filter(x=>stock.includes(x));}
 function strikeDefault(data){return stockSources(data.source).map(x=>'Return to '+x);}
 const STRIKE_NOTE_SEP='|| Note:';
-function strikeParts(raw){const v=String(raw||'');const i=v.indexOf(STRIKE_NOTE_SEP);return i<0?{plan:v.trim(),note:''}:{plan:v.slice(0,i).trim(),note:v.slice(i+STRIKE_NOTE_SEP.length).trim()};}
-function strikeCompose(plan,note){note=String(note||'').split(STRIKE_NOTE_SEP).join(' ').trim();return note?(plan?plan+' ':'')+STRIKE_NOTE_SEP+' '+note:plan;}
-function strikeEffective(data){const{plan:v,note}=strikeParts(data.strikePlan);if(v==='(none)')return{list:[],auto:false,note};if(v)return{list:v.split(/\s*;\s*/).filter(Boolean),auto:false,note};return{list:strikeDefault(data),auto:true,note};}
-function strikeText(data){const e=strikeEffective(data);return [e.list.join('; ')+(e.auto&&e.list.length?' (auto)':''),e.note?'Note: '+e.note:''].filter(Boolean).join(' \u2014 ');}
+const STRIKE_BY_SEP='|| By:';const STRIKE_PEOPLE=['Binky','Kira','Noah','Taylor','Tyler','Mackenzie','Audrey','David','Practicum','Other'];
+// strike_plan holds "<locations> || By: <person> || Note: <text>" (By and Note optional, Note always last)
+function strikeParts(raw){let v=String(raw||'');let note='',by='';const i=v.indexOf(STRIKE_NOTE_SEP);if(i>=0){note=v.slice(i+STRIKE_NOTE_SEP.length).trim();v=v.slice(0,i);}
+  const j=v.indexOf(STRIKE_BY_SEP);if(j>=0){by=v.slice(j+STRIKE_BY_SEP.length).trim();v=v.slice(0,j);}return{plan:v.trim(),by,note};}
+function strikeCompose(plan,note,by){note=String(note||'').split(STRIKE_NOTE_SEP).join(' ').trim();by=String(by||'').replace(/\|\|/g,' ').trim();
+  return [plan||'',by?STRIKE_BY_SEP+' '+by:'',note?STRIKE_NOTE_SEP+' '+note:''].filter(Boolean).join(' ');}
+function strikeSet(raw,ch){const p={...strikeParts(raw),...ch};return strikeCompose(p.plan,p.note,p.by);}
+function strikeEffective(data){const{plan:v,note,by}=strikeParts(data.strikePlan);if(v==='(none)')return{list:[],auto:false,note,by};if(v)return{list:v.split(/\s*;\s*/).filter(Boolean),auto:false,note,by};return{list:strikeDefault(data),auto:true,note,by};}
+function strikeBySelect(id,by,cls){const opts=STRIKE_PEOPLE.includes(by)||!by?STRIKE_PEOPLE:[...STRIKE_PEOPLE,by];
+  return '<select class="'+cls+'" data-pid="'+esc(id)+'" onchange="setStrikeBy(this.dataset.pid,this.value)"><option value="">\u2014 Unassigned \u2014</option>'+opts.map(o=>'<option'+(o===by?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';}
+function setStrikeBy(pid,v){const data=getPropData(pid);data.strikePlan=strikeSet(data.strikePlan,{by:v});setPropData(pid,data);showToast();if(currentView==='strike'&&STRIKE_BY_FILTER!=='All')renderStrikeView();}
+function strikeText(data){const e=strikeEffective(data);return [e.list.join('; ')+(e.auto&&e.list.length?' (auto)':''),e.by?'By: '+e.by:'',e.note?'Note: '+e.note:''].filter(Boolean).join(' \u2014 ');}
 function renderStrikeCard(data){const e=strikeEffective(data);const sel=e.list;
   const dept=(sel.find(x=>x.startsWith('Return to Other Department'))||'').replace(/^Return to Other Department\s*\(?/,'').replace(/\)$/,'');
   const has=o=>o==='Return to Other Department'?sel.some(x=>x.startsWith(o)):sel.includes(o);
@@ -1058,15 +1068,15 @@ function renderStrikeCard(data){const e=strikeEffective(data);const sel=e.list;
     +'<div class="src-sub">Other</div>'+pill('Toss','#9B2C2C')+pill('Return to Other Department','#4A3566')
     +(has('Return to Other Department')?'<input class="modal-input" style="margin-top:4px" placeholder="Which department? (e.g. Costumes, Scenic)" value="'+esc(dept)+'" onchange="setStrikeDept(this.value)">':'')
     +(!e.auto?'<button class="img-archive-toggle" onclick="resetStrike()">↺ Reset to match Source</button>':'')
-    +'</div><label class="field-label" style="margin-top:10px;display:block">Strike note</label><textarea class="field-input" style="min-height:56px" rows="2" placeholder="Anything strike crew should know \u2014 where it goes, who it belongs to, handle with care\u2026" onchange="setStrikeNote(this.value)">'+esc(e.note)+'</textarea></div>';}
-function saveStrike(list,noRender){const data=getPropData(currentPropId);data.strikePlan=strikeCompose(list.length?list.join('; '):'(none)',strikeParts(data.strikePlan).note);setPropData(currentPropId,data);if(!noRender)document.getElementById('strike-card').innerHTML=renderStrikeCard(data);showToast();}
+    +'</div><label class="field-label" style="margin-top:10px;display:block">Responsible for strike</label><div style="padding:0 14px 6px">'+strikeBySelect(currentPropId,e.by,'modal-input')+'</div><label class="field-label" style="display:block">Strike note</label><textarea class="field-input" style="min-height:56px" rows="2" placeholder="Anything strike crew should know \u2014 where it goes, who it belongs to, handle with care\u2026" onchange="setStrikeNote(this.value)">'+esc(e.note)+'</textarea></div>';}
+function saveStrike(list,noRender){const data=getPropData(currentPropId);data.strikePlan=strikeSet(data.strikePlan,{plan:list.length?list.join('; '):'(none)'});setPropData(currentPropId,data);if(!noRender)document.getElementById('strike-card').innerHTML=renderStrikeCard(data);showToast();}
 function toggleStrike(o){const data=getPropData(currentPropId);let l=strikeEffective(data).list.slice();
   if(o==='Return to Other Department'){l=l.some(x=>x.startsWith(o))?l.filter(x=>!x.startsWith(o)):[...l,o];}else l=l.includes(o)?l.filter(x=>x!==o):[...l,o];
   const order=[...SOURCE_OPTS[0][1].map(x=>'Return to '+x),...STRIKE_EXTRA];l.sort((a,b)=>order.findIndex(x=>a.startsWith(x))-order.findIndex(x=>b.startsWith(x)));saveStrike(l);}
 function setStrikeDept(v){const data=getPropData(currentPropId);const l=strikeEffective(data).list.map(x=>x.startsWith('Return to Other Department')?'Return to Other Department'+(v.trim()?' ('+v.trim()+')':''):x);saveStrike(l,true);}
-function setStrikeNote(v){const data=getPropData(currentPropId);data.strikePlan=strikeCompose(strikeParts(data.strikePlan).plan,v);setPropData(currentPropId,data);showToast();}
+function setStrikeNote(v){const data=getPropData(currentPropId);data.strikePlan=strikeSet(data.strikePlan,{note:v});setPropData(currentPropId,data);showToast();}
 // ---- Strike Plan tab: name, strike location(s), strike note, sourcing photos
-let STRIKE_FILTER='All';const STRIKE_THUMBS={};
+let STRIKE_FILTER='All',STRIKE_BY_FILTER='All';const STRIKE_THUMBS={};
 function strikeLocColor(l){return l==='Toss'?'#9B2C2C':l.startsWith('Return to Other Department')?'#4A3566':'#2D5A3D';}
 function strikeLocKey(l){return l.startsWith('Return to Other Department')?'Return to Other Department':l;}
 function showStrike(){histFlushAll();heroEditing=false;currentView='strike';currentPropId=null;showView('strike');
@@ -1074,6 +1084,7 @@ function showStrike(){histFlushAll();heroEditing=false;currentView='strike';curr
   document.getElementById('header-title').textContent='Strike Plan';document.getElementById('header-sub').textContent=showCfg().name;
   updateNav('strike');renderStrikeView();}
 function setStrikeFilter(f){STRIKE_FILTER=f;renderStrikeView();}
+function setStrikeByFilter(f){STRIKE_BY_FILTER=f;renderStrikeView();}
 function renderStrikeView(){const el=document.getElementById('strike-view');const db=loadDB();
   const props=liveProps().slice().sort((a,b)=>(a.sortOrder??0)-(b.sortOrder??0));
   const rows=props.map(p=>({p,d:db[p.id]||{},e:strikeEffective(db[p.id]||{})}));
@@ -1081,15 +1092,21 @@ function renderStrikeView(){const el=document.getElementById('strike-view');cons
   const order=[...SOURCE_OPTS[0][1].map(x=>'Return to '+x),...STRIKE_EXTRA];
   const keys=Object.keys(counts).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
   if(STRIKE_FILTER!=='All'&&STRIKE_FILTER!=='(none)'&&!counts[STRIKE_FILTER])STRIKE_FILTER='All';
-  const shown=rows.filter(r=>STRIKE_FILTER==='All'||(STRIKE_FILTER==='(none)'?!r.e.list.length:r.e.list.some(l=>strikeLocKey(l)===STRIKE_FILTER)));
+  const byCounts={};let unassigned=0;rows.forEach(r=>{if(r.e.by)byCounts[r.e.by]=(byCounts[r.e.by]||0)+1;else unassigned++;});
+  const people=[...STRIKE_PEOPLE,...Object.keys(byCounts).filter(x=>!STRIKE_PEOPLE.includes(x))];
+  const shown=rows.filter(r=>(STRIKE_FILTER==='All'||(STRIKE_FILTER==='(none)'?!r.e.list.length:r.e.list.some(l=>strikeLocKey(l)===STRIKE_FILTER)))
+    &&(STRIKE_BY_FILTER==='All'||(STRIKE_BY_FILTER==='(unassigned)'?!r.e.by:r.e.by===STRIKE_BY_FILTER)));
   const chip=(k,label,n,bg)=>'<button class="src-opt'+(STRIKE_FILTER===k?' selected':'')+'" style="background:'+bg+'" data-f="'+esc(k)+'" onclick="setStrikeFilter(this.dataset.f)">'+esc(label)+' ('+n+')</button>';
   el.innerHTML='<div class="dash-title">Strike Plan</div><div class="sk-filters">'
     +chip('All','All',rows.length,'#12100E')+keys.map(k=>chip(k,k.replace(/^Return to /,''),counts[k],strikeLocColor(k))).join('')+(none?chip('(none)','No plan',none,'#8A8A8E'):'')
-    +'</div>'+(shown.length?shown.map(r=>{const id=r.p.id;
+    +'</div><div class="sk-byfilter"><label>Responsible</label><select class="modal-input" onchange="setStrikeByFilter(this.value)"><option value="All">Everyone ('+rows.length+')</option>'
+    +people.map(x=>'<option value="'+esc(x)+'"'+(STRIKE_BY_FILTER===x?' selected':'')+'>'+esc(x)+' ('+(byCounts[x]||0)+')</option>').join('')
+    +'<option value="(unassigned)"'+(STRIKE_BY_FILTER==='(unassigned)'?' selected':'')+'>Unassigned ('+unassigned+')</option></select></div>'
+    +(shown.length?shown.map(r=>{const id=r.p.id;
       const locs=r.e.list.length?'<div class="sk-locs">'+r.e.list.map(l=>'<span class="sk-loc'+(r.e.auto?' auto':'')+'" style="background:'+strikeLocColor(l)+'">'+esc(l)+'</span>').join('')+(r.e.auto?'<span class="sk-sub" style="align-self:center">auto from Source</span>':'')+'</div>':'<div class="sk-locs"><span class="sk-none">No strike plan set</span></div>';
       const n=(r.d.srcImgs||[]).length;
       return '<div class="sk-row"><div class="sk-name" onclick="openProp(\''+id+'\')">'+esc(r.p.name)+'</div><div class="sk-sub">'+esc([r.p.section,r.p.group].filter(Boolean).join(' · '))+(r.p.qty?' · qty '+esc(r.p.qty):'')+'</div>'
-        +locs+'<div class="sk-note-wrap" id="sk-note-'+esc(id)+'">'+strikeNoteHtml(id,r.e.note)+'</div>'
+        +locs+'<div class="sk-by"><span>Strike by</span>'+strikeBySelect(id,r.e.by,'sk-by-sel'+(r.e.by?'':' empty'))+'</div><div class="sk-note-wrap" id="sk-note-'+esc(id)+'">'+strikeNoteHtml(id,r.e.note)+'</div>'
         +(n?'<div class="sk-imgs" id="sk-imgs-'+esc(id)+'">'+strikeThumbsHtml(id,n)+'</div>':'')+'</div>';}).join(''):'<div class="sk-none">Nothing here.</div>');
   loadStrikeThumbs(shown.filter(r=>(r.d.srcImgs||[]).length&&!STRIKE_THUMBS[r.p.id]).map(r=>r.p.id));}
 function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
@@ -1107,8 +1124,8 @@ async function loadStrikeThumbs(ids){for(let i=0;i<ids.length;i+=8){const chunk=
 function viewStrikeImg(id,i){const src=(STRIKE_THUMBS[id]||[])[i];if(!src)return;let v=document.getElementById('img-viewer');
   if(!v){v=document.createElement('div');v.id='img-viewer';v.onclick=e=>{if(e.target===v)closeImgViewer();};document.body.appendChild(v);}
   const p=PROPS_DATA.find(x=>x.id===id)||{};v.innerHTML='<img src="'+src+'"><div class="iv-cap">'+esc(p.name||'')+' · Sourcing #'+(i+1)+'</div><div class="iv-actions"><button onclick="closeImgViewer()">Close</button></div>';v.classList.add('open');}
-function setStrikeNoteFor(pid,v){const data=getPropData(pid);data.strikePlan=strikeCompose(strikeParts(data.strikePlan).plan,v);setPropData(pid,data);showToast();}
-function resetStrike(){const data=getPropData(currentPropId);data.strikePlan=strikeCompose('',strikeParts(data.strikePlan).note);setPropData(currentPropId,data);document.getElementById('strike-card').innerHTML=renderStrikeCard(data);showToast();}
+function setStrikeNoteFor(pid,v){const data=getPropData(pid);data.strikePlan=strikeSet(data.strikePlan,{note:v});setPropData(pid,data);showToast();}
+function resetStrike(){const data=getPropData(currentPropId);data.strikePlan=strikeSet(data.strikePlan,{plan:''});setPropData(currentPropId,data);document.getElementById('strike-card').innerHTML=renderStrikeCard(data);showToast();}
 function toggleSource(o){const data=getPropData(currentPropId);let sel=sourceList(data.source);sel=sel.includes(o)?sel.filter(x=>x!==o):[...sel,o];
   const order=SOURCE_OPTS.flatMap(x=>x[1]);sel.sort((a,b)=>order.indexOf(a)-order.indexOf(b));data.source=sel.join(', ');setPropData(currentPropId,data);syncSourceActions(currentPropId,data.source);
   document.querySelectorAll('#source-picker .src-opt').forEach(b=>b.classList.toggle('selected',sel.includes(b.dataset.src)));const sc=document.getElementById('strike-card');if(sc)sc.innerHTML=renderStrikeCard(data);showToast();}
@@ -1180,6 +1197,7 @@ function histDescribe(h){
   if(h.field==='asked'){let v={};try{v=JSON.parse(h.new_value)||{};}catch{}const a=ACT_BY_ID[v.a];const what=a?' \u2014 '+esc(a.who||'')+': '+esc(noteSummary(a.details||typeLabel(a))):'';return v.clear?'<b>Asked log cleared</b>'+what:'<b>Asked</b> ('+esc(v.via||'')+', '+fmtDate(v.on)+')'+what;}
   const L=HIST_LABEL[h.field]||h.field;
   if(h.field==='strikePlan'){const o=strikeParts(h.old_value),n=strikeParts(h.new_value);
+    if(o.plan===n.plan&&o.note===n.note&&o.by!==n.by)return '<b>Strike by:</b> '+(n.by?esc(n.by):'unassigned');
     if(o.plan===n.plan&&o.note!==n.note)return '<b>Strike note:</b> '+(n.note?esc(n.note):'removed');
     if(n.plan===''||n.plan==='(none)')return '<b>Strike plan:</b> '+(n.plan===''?'reset to match Source':'cleared');
     return '<b>Strike plan:</b> '+(o.plan&&o.plan!=='(none)'?'<span class="hist-old">'+esc(o.plan)+'</span> \u2192 ':'')+'<span class="hist-new">'+esc(n.plan)+'</span>';}
