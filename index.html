@@ -203,7 +203,10 @@ table.xl tr.over td.num.bad{color:#9B2C2C;font-weight:600}
 .sk-row{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
 .sk-name{font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.sk-name:hover{text-decoration:underline}.sk-sub{font-size:11px;color:var(--muted);margin-top:2px}
 .sk-locs{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.sk-loc{font-size:11px;font-weight:600;color:#fff;padding:3px 10px;border-radius:100px}.sk-loc.auto{opacity:.7}.sk-none{font-size:12px;color:var(--muted);font-style:italic}
-.sk-by-print{display:none}.sk-by-ctl:has(.modal-input){display:flex}.sk-by-ctl .modal-input~.sk-by-other{width:100%;padding:10px 12px}.sk-by-ctl{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}.sk-by-other{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 8px;width:150px}
+.sk-by-print{display:none}
+.sk-edit{background:none;border:none;padding:2px 4px;font-family:var(--font);font-size:12px;color:var(--muted);cursor:pointer}.sk-edit:hover{color:var(--ink)}
+.sk-picker{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;padding:8px;border:1px dashed var(--border);border-radius:10px}.sk-picker .src-opt{padding:5px 10px}.sk-dept{width:100%}
+.sk-picker-foot{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:2px}.sk-done{background:#12100E;color:#fff;border:none;border-radius:100px;padding:5px 14px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer}.sk-by-ctl:has(.modal-input){display:flex}.sk-by-ctl .modal-input~.sk-by-other{width:100%;padding:10px 12px}.sk-by-ctl{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}.sk-by-other{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 8px;width:150px}
 .sk-byfilter{display:flex;align-items:center;gap:8px;margin:0 0 12px}.sk-byfilter label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.sk-byfilter select{width:auto;min-width:180px;padding:7px 10px}
 .sk-by{display:flex;align-items:center;gap:8px;margin:0 0 8px}.sk-by span{font-size:11px;color:var(--muted)}.sk-by-sel{font-family:var(--font);font-size:13px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 8px}.sk-by-sel.empty{color:var(--muted);font-weight:400}
 .sk-note-text{font-size:13px;line-height:1.45;color:var(--ink);white-space:pre-wrap;background:rgba(201,150,58,.1);border-left:3px solid #C9963A;border-radius:6px;padding:7px 10px;cursor:text}
@@ -595,7 +598,7 @@ html,body{background:#fff!important;height:auto!important;overflow:visible!impor
 .sheet-wrap{max-height:none!important;overflow:visible!important}
 table.xl{font-size:8pt!important}table.xl th{position:static!important}table.xl tr{break-inside:avoid}
 .img-grid{grid-template-columns:repeat(4,1fr)!important}
-#strike-view .dash-title,.sk-filters,.sk-byfilter,.sk-note-add,.sk-by select{display:none!important}
+#strike-view .dash-title,.sk-filters,.sk-byfilter,.sk-note-add,.sk-by select,.sk-edit,.sk-picker{display:none!important}
 .sk-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start}
 .sk-row{background:#fff!important;border:1px solid #D1D1D6!important;border-radius:6px!important;padding:6px 7px!important;margin:0!important;break-inside:avoid;page-break-inside:avoid}
 .sk-name{font-size:10pt!important;line-height:1.2}.sk-sub{font-size:7pt!important;margin-top:1px!important}
@@ -902,6 +905,7 @@ async function printView(){const v=currentView||'list';const names={list:'Props'
   if(v==='list'){const ap=document.querySelector('#filter-bar .pill.active');const t=ap?ap.textContent.trim():'All';label=t==='All'?'All Props':(t==='To Do \u2192 Done'?'To Do \u2192 Done':'Props \u2014 '+t);if(currentSearch)label+=' (search: \u201c'+currentSearch+'\u201d)';
     if(currentFilter==='progress'&&!ACTIONS_ALL){await ensureAllActions();renderList();}}
   if(v==='strike'){const f=[];if(STRIKE_FILTER!=='All')f.push(STRIKE_FILTER==='(none)'?'No plan':STRIKE_FILTER.replace(/^Return to /,''));if(STRIKE_BY_FILTER!=='All')f.push(STRIKE_BY_FILTER==='(unassigned)'?'Unassigned':'By '+STRIKE_BY_FILTER);if(f.length)label+=' \u2014 '+f.join(' \u00b7 ');}
+  if(v==='strike'&&SK_OPEN.size){SK_OPEN.clear();renderStrikeView();}
   if(v==='detail'){const pr=PROPS_DATA.find(x=>x.id===currentPropId);if(pr)label=pr.name;document.querySelectorAll('#detail-view .detail-card.ck-collapsed').forEach(c=>c.classList.add('pr-was-collapsed'));document.querySelectorAll('#detail-view .pr-was-collapsed').forEach(c=>c.classList.remove('ck-collapsed'));}
   const d=new Date();document.getElementById('print-title').innerHTML='<div class="pt-show">'+esc(showCfg().name)+' \u00b7 Props</div><div class="pt-view">'+esc(label)+'</div><div class="pt-date">Printed '+d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</div>';
   setTimeout(()=>{window.print();document.querySelectorAll('#detail-view .pr-was-collapsed').forEach(c=>{c.classList.add('ck-collapsed');c.classList.remove('pr-was-collapsed');});},50);}
@@ -1092,10 +1096,12 @@ function renderStrikeCard(data){const e=strikeEffective(data);const sel=e.list;
     +(!e.auto?'<button class="img-archive-toggle" onclick="resetStrike()">↺ Reset to match Source</button>':'')
     +'</div><label class="field-label" style="margin-top:10px;display:block">Responsible for strike</label><div style="padding:0 14px 6px">'+strikeBySelect(currentPropId,e.by,'modal-input')+'</div><label class="field-label" style="display:block">Strike note</label><textarea class="field-input" style="min-height:56px" rows="2" placeholder="Anything strike crew should know \u2014 where it goes, who it belongs to, handle with care\u2026" onchange="setStrikeNote(this.value)">'+esc(e.note)+'</textarea></div>';}
 function saveStrike(list,noRender){const data=getPropData(currentPropId);data.strikePlan=strikeSet(data.strikePlan,{plan:list.length?list.join('; '):'(none)'});setPropData(currentPropId,data);if(!noRender)document.getElementById('strike-card').innerHTML=renderStrikeCard(data);showToast();}
-function toggleStrike(o){const data=getPropData(currentPropId);let l=strikeEffective(data).list.slice();
+function strikeToggled(data,o){let l=strikeEffective(data).list.slice();
   if(o==='Return to Other Department'){l=l.some(x=>x.startsWith(o))?l.filter(x=>!x.startsWith(o)):[...l,o];}else l=l.includes(o)?l.filter(x=>x!==o):[...l,o];
-  const order=[...SOURCE_OPTS[0][1].map(x=>'Return to '+x),...STRIKE_EXTRA];l.sort((a,b)=>order.findIndex(x=>a.startsWith(x))-order.findIndex(x=>b.startsWith(x)));saveStrike(l);}
-function setStrikeDept(v){const data=getPropData(currentPropId);const l=strikeEffective(data).list.map(x=>x.startsWith('Return to Other Department')?'Return to Other Department'+(v.trim()?' ('+v.trim()+')':''):x);saveStrike(l,true);}
+  const order=[...SOURCE_OPTS[0][1].map(x=>'Return to '+x),...STRIKE_EXTRA];l.sort((a,b)=>order.findIndex(x=>a.startsWith(x))-order.findIndex(x=>b.startsWith(x)));return l;}
+function strikeDeptList(data,v){return strikeEffective(data).list.map(x=>x.startsWith('Return to Other Department')?'Return to Other Department'+(v.trim()?' ('+v.trim()+')':''):x);}
+function toggleStrike(o){saveStrike(strikeToggled(getPropData(currentPropId),o));}
+function setStrikeDept(v){saveStrike(strikeDeptList(getPropData(currentPropId),v),true);}
 function setStrikeNote(v){const data=getPropData(currentPropId);data.strikePlan=strikeSet(data.strikePlan,{note:v});setPropData(currentPropId,data);showToast();}
 // ---- Strike Plan tab: name, strike location(s), strike note, sourcing photos
 let STRIKE_FILTER='All',STRIKE_BY_FILTER='All';const STRIKE_THUMBS={};
@@ -1125,12 +1131,30 @@ function renderStrikeView(){const el=document.getElementById('strike-view');cons
     +people.map(x=>'<option value="'+esc(x)+'"'+(STRIKE_BY_FILTER===x?' selected':'')+'>'+esc(x)+' ('+(byCounts[x]||0)+')</option>').join('')
     +'<option value="(unassigned)"'+(STRIKE_BY_FILTER==='(unassigned)'?' selected':'')+'>Unassigned ('+unassigned+')</option></select></div>'
     +(shown.length?'<div class="sk-grid">'+shown.map(r=>{const id=r.p.id;
-      const locs=r.e.list.length?'<div class="sk-locs">'+r.e.list.map(l=>'<span class="sk-loc'+(r.e.auto?' auto':'')+'" style="background:'+strikeLocColor(l)+'">'+esc(l)+'</span>').join('')+(r.e.auto?'<span class="sk-sub" style="align-self:center">auto from Source</span>':'')+'</div>':'<div class="sk-locs"><span class="sk-none">No strike plan set</span></div>';
+      const locs='<div class="sk-locs-wrap" id="sk-locs-'+esc(id)+'">'+strikeLocsHtml(id,r.e)+'</div>';
       const n=(r.d.srcImgs||[]).length;
       return '<div class="sk-row"><div class="sk-name" onclick="openProp(\''+id+'\')">'+esc(r.p.name)+'</div><div class="sk-sub">'+esc([r.p.section,r.p.group].filter(Boolean).join(' · '))+(r.p.qty?' · qty '+esc(r.p.qty):'')+'</div>'
         +locs+'<div class="sk-by"><span>Strike by</span>'+strikeBySelect(id,r.e.by,'sk-by-sel'+(r.e.by?'':' empty'))+'</div><div class="sk-note-wrap" id="sk-note-'+esc(id)+'">'+strikeNoteHtml(id,r.e.note)+'</div>'
         +(n?'<div class="sk-imgs" id="sk-imgs-'+esc(id)+'">'+strikeThumbsHtml(id,n)+'</div>':'')+'</div>';}).join('')+'</div>':'<div class="sk-none">Nothing here.</div>');
   loadStrikeThumbs(shown.filter(r=>(r.d.srcImgs||[]).length&&!STRIKE_THUMBS[r.p.id]).map(r=>r.p.id));}
+// Inline strike-location editing on the Strike tab
+const SK_OPEN=new Set();
+function strikeLocsHtml(id,e){const sel=e.list;const q="'"+id+"'";
+  const cur=sel.length?sel.map(l=>'<span class="sk-loc'+(e.auto?' auto':'')+'" style="background:'+strikeLocColor(l)+'">'+esc(l)+'</span>').join('')+(e.auto?'<span class="sk-sub" style="align-self:center">auto from Source</span>':''):'<span class="sk-none">No strike plan set</span>';
+  if(!SK_OPEN.has(id))return '<div class="sk-locs">'+cur+'<button class="sk-edit" onclick="skOpenLocs('+q+')">'+(sel.length?'✎ Change':'+ Set strike plan')+'</button></div>';
+  const has=o=>o==='Return to Other Department'?sel.some(x=>x.startsWith(o)):sel.includes(o);
+  const dept=(sel.find(x=>x.startsWith('Return to Other Department'))||'').replace(/^Return to Other Department\s*\(?/,'').replace(/\)$/,'');
+  const pill=(o,label,bg)=>'<button class="src-opt'+(has(o)?' selected':'')+'" style="background:'+bg+'" data-sp="'+esc(o)+'" onclick="skToggleLoc('+q+',this.dataset.sp)">'+esc(label)+'</button>';
+  return '<div class="sk-picker">'+SOURCE_OPTS[0][1].map(x=>pill('Return to '+x,x,'#2D5A3D')).join('')+pill('Toss','Toss','#9B2C2C')+pill('Return to Other Department','Other Dept','#4A3566')
+    +(has('Return to Other Department')?'<input class="sk-by-other sk-dept" placeholder="Which department?" value="'+esc(dept)+'" onchange="skSetDept('+q+',this.value)">':'')
+    +'<div class="sk-picker-foot">'+(e.auto?'<span class="sk-sub">auto from Source</span>':'<button class="sk-edit" onclick="skResetLocs('+q+')">↺ Match Source</button>')+'<button class="sk-done" onclick="skCloseLocs('+q+')">Done</button></div></div>';}
+function skRefreshLocs(id){const box=document.getElementById('sk-locs-'+id);if(box)box.innerHTML=strikeLocsHtml(id,strikeEffective(getPropData(id)));}
+function skOpenLocs(id){SK_OPEN.add(id);skRefreshLocs(id);}
+function skCloseLocs(id){SK_OPEN.delete(id);skRefreshLocs(id);}
+function skSaveLocs(id,list){const d=getPropData(id);d.strikePlan=strikeSet(d.strikePlan,{plan:list.length?list.join('; '):'(none)'});setPropData(id,d);showToast();}
+function skToggleLoc(id,o){skSaveLocs(id,strikeToggled(getPropData(id),o));skRefreshLocs(id);if(o==='Return to Other Department'){const i=document.querySelector('#sk-locs-'+CSS.escape(id)+' .sk-dept');if(i)i.focus();}}
+function skSetDept(id,v){skSaveLocs(id,strikeDeptList(getPropData(id),v));}
+function skResetLocs(id){const d=getPropData(id);d.strikePlan=strikeSet(d.strikePlan,{plan:''});setPropData(id,d);showToast();skRefreshLocs(id);}
 function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
 function skAutosize(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
 function editStrikeNote(id){const box=document.getElementById('sk-note-'+id);if(!box||box.querySelector('textarea'))return;const note=strikeParts(getPropData(id).strikePlan).note;
