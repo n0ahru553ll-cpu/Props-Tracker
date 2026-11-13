@@ -203,7 +203,9 @@ table.xl tr.over td.num.bad{color:#9B2C2C;font-weight:600}
 .sk-row{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px}
 .sk-name{font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.sk-name:hover{text-decoration:underline}.sk-sub{font-size:11px;color:var(--muted);margin-top:2px}
 .sk-locs{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.sk-loc{font-size:11px;font-weight:600;color:#fff;padding:3px 10px;border-radius:100px}.sk-loc.auto{opacity:.7}.sk-none{font-size:12px;color:var(--muted);font-style:italic}
-.sk-note{width:100%;min-height:38px;font-family:var(--font);font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 9px;resize:vertical;outline:none}
+.sk-note-text{font-size:13px;line-height:1.45;color:var(--ink);white-space:pre-wrap;background:rgba(201,150,58,.1);border-left:3px solid #C9963A;border-radius:6px;padding:7px 10px;cursor:text}
+.sk-note-add{background:none;border:none;padding:2px 0;font-family:var(--font);font-size:12px;color:var(--muted);cursor:pointer}.sk-note-add:hover{color:var(--ink)}
+.sk-note{width:100%;min-height:38px;overflow:hidden;line-height:1.45;font-family:var(--font);font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--border);border-radius:8px;padding:7px 9px;resize:vertical;outline:none}
 .sk-imgs{display:flex;gap:6px;overflow-x:auto;margin-top:8px}.sk-imgs img{height:84px;width:auto;max-width:140px;object-fit:cover;border-radius:8px;cursor:zoom-in;flex-shrink:0;background:#eee}.sk-imgs .sk-ph{height:84px;width:84px;border-radius:8px;background:rgba(0,0,0,.06);flex-shrink:0}
 #budget-view .dash-stat-num{font-size:26px}
 #budget-view .dash-stat.bad .dash-stat-num{color:var(--red)}#budget-view .dash-stat.warn .dash-stat-num{color:var(--gold-dim)}
@@ -1087,9 +1089,15 @@ function renderStrikeView(){const el=document.getElementById('strike-view');cons
       const locs=r.e.list.length?'<div class="sk-locs">'+r.e.list.map(l=>'<span class="sk-loc'+(r.e.auto?' auto':'')+'" style="background:'+strikeLocColor(l)+'">'+esc(l)+'</span>').join('')+(r.e.auto?'<span class="sk-sub" style="align-self:center">auto from Source</span>':'')+'</div>':'<div class="sk-locs"><span class="sk-none">No strike plan set</span></div>';
       const n=(r.d.srcImgs||[]).length;
       return '<div class="sk-row"><div class="sk-name" onclick="openProp(\''+id+'\')">'+esc(r.p.name)+'</div><div class="sk-sub">'+esc([r.p.section,r.p.group].filter(Boolean).join(' · '))+(r.p.qty?' · qty '+esc(r.p.qty):'')+'</div>'
-        +locs+'<textarea class="sk-note" rows="1" placeholder="Strike note…" data-pid="'+esc(id)+'" onchange="setStrikeNoteFor(this.dataset.pid,this.value)">'+esc(r.e.note)+'</textarea>'
+        +locs+'<div class="sk-note-wrap" id="sk-note-'+esc(id)+'">'+strikeNoteHtml(id,r.e.note)+'</div>'
         +(n?'<div class="sk-imgs" id="sk-imgs-'+esc(id)+'">'+strikeThumbsHtml(id,n)+'</div>':'')+'</div>';}).join(''):'<div class="sk-none">Nothing here.</div>');
   loadStrikeThumbs(shown.filter(r=>(r.d.srcImgs||[]).length&&!STRIKE_THUMBS[r.p.id]).map(r=>r.p.id));}
+function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
+function skAutosize(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
+function editStrikeNote(id){const box=document.getElementById('sk-note-'+id);if(!box||box.querySelector('textarea'))return;const note=strikeParts(getPropData(id).strikePlan).note;
+  box.innerHTML='<textarea class="sk-note" placeholder="Strike note…" oninput="skAutosize(this)">'+esc(note)+'</textarea>';const t=box.querySelector('textarea');
+  t.onblur=()=>{if(t.value.trim()!==note.trim())setStrikeNoteFor(id,t.value);box.innerHTML=strikeNoteHtml(id,strikeParts(getPropData(id).strikePlan).note);};
+  t.onkeydown=e=>{if(e.key==='Escape'){t.value=note;t.blur();}};skAutosize(t);t.focus();t.setSelectionRange(t.value.length,t.value.length);}
 function strikeThumbsHtml(id,n){const t=STRIKE_THUMBS[id];if(!t)return Array.from({length:Math.min(n,4)},()=>'<div class="sk-ph"></div>').join('');
   return t.map((src,i)=>'<img loading="lazy" src="'+src+'" onclick="viewStrikeImg(\''+id+'\','+i+')" alt="Sourcing option '+(i+1)+'">').join('');}
 async function loadStrikeThumbs(ids){for(let i=0;i<ids.length;i+=8){const chunk=ids.slice(i,i+8);
