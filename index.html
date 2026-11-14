@@ -1078,8 +1078,8 @@ function strikeCompose(plan,note,by,pri){note=String(note||'').split(STRIKE_NOTE
 function strikeSet(raw,ch){const p={...strikeParts(raw),...ch};return strikeCompose(p.plan,p.note,p.by,p.pri);}
 // Priority: High by default for furniture, anything going offsite, and guns; a tap on the tile overrides it
 const STRIKE_GUN_RE=/\b(gun|guns|pistols?|rifles?|muskets?|firearms?|revolvers?|flintlocks?|shotguns?|blunderbuss)\b/i;
-// soft goods (curtains, covers, linens, rugs, pillows, doilies...) are never auto-High
-const STRIKE_SOFT_RE=/\b(curtains?|drapes?|draper(y|ies)|covers?|sheets?|blankets?|quilts?|pillows?|pillowcases?|cushions?|doil(y|ies)|linens?|rugs?|carpets?|shawls?|throws?|tablecloths?|napkins?|handkerchiefs?|fabrics?|textiles?)\b/i;
+// soft goods (curtains, covers, linens, pillows, doilies...) are never auto-High; rugs/carpets follow the normal rule
+const STRIKE_SOFT_RE=/\b(curtains?|drapes?|draper(y|ies)|covers?|sheets?|blankets?|quilts?|pillows?|pillowcases?|cushions?|doil(y|ies)|linens?|shawls?|throws?|tablecloths?|napkins?|handkerchiefs?|fabrics?|textiles?)\b/i;
 function strikeIsSoft(p){const t=((p.name||'')+' '+(p.group||'')).replace(/sheet music/ig,'');return STRIKE_SOFT_RE.test(t);}
 function strikePriAuto(p,e){const t=(p.name||'')+' '+(p.group||'');if(STRIKE_GUN_RE.test(t))return true;if(strikeIsSoft(p))return false;return /furniture/i.test(p.section||'')||e.list.includes('Return to Offsite');}
 function strikeIsHigh(p,e){return e.pri?e.pri==='High':strikePriAuto(p,e);}
