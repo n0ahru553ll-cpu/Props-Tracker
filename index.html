@@ -618,9 +618,9 @@ body.sk-printing #print-title{display:none!important}
 .sk-pages .sk-pri,.sk-pages .sk-by,.sk-pages .sk-locs .sk-sub{display:none!important}
 .sk-pages .sk-grid{gap:5px!important}.sk-pages .sk-row{padding:6px 8px!important;display:flex!important;flex-direction:column}
 .sk-pages .sk-imgs{display:flex!important;flex-wrap:nowrap!important;gap:4px!important;margin-top:6px!important}.sk-pages .sk-imgs img{flex:1 1 0;min-width:0;width:auto!important;max-width:none!important;object-fit:cover;border-radius:5px!important}
-.sk-pages .sz-s .sk-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}.sk-pages .sz-s .sk-name{font-size:15pt!important}.sk-pages .sz-s .sk-sub{font-size:9pt!important}.sk-pages .sz-s .sk-loc{font-size:10pt!important;padding:2px 10px!important}.sk-pages .sz-s .sk-note-text{font-size:11pt!important;padding:6px 10px!important}.sk-pages .sz-s .sk-imgs img{height:2.5in!important}.sk-pages .sz-s .sk-imgs img:nth-child(n+4){display:block!important}.sk-pages .sz-s .sk-imgs img:nth-child(n+5){display:none!important}
-.sk-pages .sz-m .sk-name{font-size:12pt!important}.sk-pages .sz-m .sk-sub{font-size:8pt!important}.sk-pages .sz-m .sk-loc{font-size:8pt!important}.sk-pages .sz-m .sk-note-text{font-size:9pt!important}.sk-pages .sz-m .sk-imgs img{height:1.55in!important}
-.sk-pages .sz-l .sk-name{font-size:10.5pt!important}.sk-pages .sz-l .sk-note-text{font-size:8pt!important}.sk-pages .sz-l .sk-imgs img{height:1.05in!important}
+.sk-pages .sz-s .sk-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}.sk-pages .sz-s .sk-name{font-size:15pt!important}.sk-pages .sz-s .sk-sub{font-size:9pt!important}.sk-pages .sz-s .sk-loc{font-size:10pt!important;padding:2px 10px!important}.sk-pages .sz-s .sk-note-text{font-size:11pt!important;padding:6px 10px!important}.sk-pages .sz-s{--imgh:2.5in}.sk-pages .sz-s .sk-imgs img{height:var(--imgh)!important}.sk-pages .sz-s .sk-imgs img:nth-child(n+4){display:block!important}.sk-pages .sz-s .sk-imgs img:nth-child(n+5){display:none!important}
+.sk-pages .sz-m .sk-name{font-size:12pt!important}.sk-pages .sz-m .sk-sub{font-size:8pt!important}.sk-pages .sz-m .sk-loc{font-size:8pt!important}.sk-pages .sz-m .sk-note-text{font-size:9pt!important}.sk-pages .sz-m{--imgh:1.55in}.sk-pages .sz-m .sk-imgs img{height:var(--imgh)!important}
+.sk-pages .sz-l .sk-name{font-size:10.5pt!important}.sk-pages .sz-l .sk-note-text{font-size:8pt!important}.sk-pages .sz-l{--imgh:1.05in}.sk-pages .sz-l .sk-imgs img{height:var(--imgh)!important}
 }
 </style>
 </head>
@@ -1203,8 +1203,21 @@ function strikePrintGroups(rows){const order=[...STRIKE_PEOPLE];const out=[];
     const keys=Object.keys(by).sort((a,b)=>{const ia=a==='Unassigned'?999:(order.indexOf(a)<0?500:order.indexOf(a)),ib=b==='Unassigned'?999:(order.indexOf(b)<0?500:order.indexOf(b));return ia-ib||a.localeCompare(b);});
     keys.forEach(k=>out.push('<div class="sk-pgroup '+(by[k].length<=4?'sz-s':by[k].length<=9?'sz-m':'sz-l')+'"><div class="sk-ghead"><div class="sk-gshow">'+esc(showCfg().name)+' \u00b7 Strike Plan</div><div class="sk-gname">'+esc(k)+'</div><div class="sk-gpri '+(hi?'hi':'lo')+'">'+(hi?'High priority':'Low priority')+' \u00b7 '+by[k].length+' item'+(by[k].length===1?'':'s')+'</div></div><div class="sk-grid">'+by[k].map(strikeTileHtml).join('')+'</div></div>'));}
   return '<div class="sk-pages">'+out.join('')+'</div>';}
-window.addEventListener('beforeprint',()=>{if(currentView==='strike'){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();}});
-window.addEventListener('afterprint',()=>{if(SK_PRINT){SK_PRINT=false;document.body.classList.remove('sk-printing');renderStrikeView();}});
+// Grow each person page's photos until the page is full (letter, 7mm margins). Print rules are
+// mirrored into a screen style while measuring so the layout matches what the printer will get.
+function skFitPages(){let css='';for(const ss of document.styleSheets){try{for(const r of ss.cssRules){if(r.media&&[...r.media].includes('print'))css+=[...r.cssRules].map(c=>c.cssText).join('\n');}}catch(e){}}
+  let st=document.getElementById('sk-fit-style');if(!st){st=document.createElement('style');st.id='sk-fit-style';document.head.appendChild(st);}
+  st.textContent=css.replace(/@page[^{]*\{[^}]*\}/g,'')+'\n.sk-pages{width:7.95in}';
+  const target=96*11-2*26.5-14,PX=96;
+  document.querySelectorAll('.sk-pages .sk-pgroup').forEach(g=>{const tiles=[...g.querySelectorAll('.sk-row')];if(!g.querySelector('.sk-imgs img'))return;
+    let imgh=parseFloat(getComputedStyle(g).getPropertyValue('--imgh'))*PX||100;
+    for(let i=0;i<8;i++){const h=g.getBoundingClientRect().height;const d=target-h;if(Math.abs(d)<6)break;
+      const rows=new Set(tiles.filter(t=>t.querySelector('.sk-imgs img')).map(t=>Math.round(t.getBoundingClientRect().top))).size||1;
+      imgh=Math.max(0.8*PX,Math.min(3.6*PX,imgh+d/rows));g.style.setProperty('--imgh',imgh+'px');
+      if(imgh<=0.8*PX||imgh>=3.6*PX){if(g.getBoundingClientRect().height<=target||imgh<=0.8*PX)break;}}
+    while(g.getBoundingClientRect().height>target&&imgh>0.8*PX){imgh-=4;g.style.setProperty('--imgh',imgh+'px');}});}
+window.addEventListener('beforeprint',()=>{if(currentView==='strike'){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();try{skFitPages();}catch(e){console.error('fit',e);}}});
+window.addEventListener('afterprint',()=>{if(SK_PRINT){SK_PRINT=false;document.body.classList.remove('sk-printing');const st=document.getElementById('sk-fit-style');if(st)st.remove();renderStrikeView();}});
 function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
 function skAutosize(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
 function editStrikeNote(id){const box=document.getElementById('sk-note-'+id);if(!box||box.querySelector('textarea'))return;const note=strikeParts(getPropData(id).strikePlan).note;
