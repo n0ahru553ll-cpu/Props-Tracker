@@ -920,7 +920,8 @@ async function printView(){const v=currentView||'list';const names={list:'Props'
   if(v==='list'){const ap=document.querySelector('#filter-bar .pill.active');const t=ap?ap.textContent.trim():'All';label=t==='All'?'All Props':(t==='To Do \u2192 Done'?'To Do \u2192 Done':'Props \u2014 '+t);if(currentSearch)label+=' (search: \u201c'+currentSearch+'\u201d)';
     if(currentFilter==='progress'&&!ACTIONS_ALL){await ensureAllActions();renderList();}}
   if(v==='strike'){const f=[];if(STRIKE_FILTER!=='All')f.push(STRIKE_FILTER==='(none)'?'No plan':STRIKE_FILTER.replace(/^Return to /,''));if(STRIKE_BY_FILTER!=='All')f.push(STRIKE_BY_FILTER==='(unassigned)'?'Unassigned':'By '+STRIKE_BY_FILTER);if(f.length)label+=' \u2014 '+f.join(' \u00b7 ');}
-  if(v==='strike'){if(SK_OPEN.size){SK_OPEN.clear();renderStrikeView();}const need=liveProps().filter(p=>(getPropData(p.id).srcImgs||[]).length&&!STRIKE_THUMBS[p.id]).map(p=>p.id);if(need.length){showToast&&showToast();await loadStrikeThumbs(need);}}
+  if(v==='strike'){if(SK_OPEN.size){SK_OPEN.clear();renderStrikeView();}const need=liveProps().filter(p=>(getPropData(p.id).srcImgs||[]).length&&!STRIKE_THUMBS[p.id]).map(p=>p.id);if(need.length){showToast&&showToast();await loadStrikeThumbs(need);}
+    await skPreparePrint();}
   if(v==='detail'){const pr=PROPS_DATA.find(x=>x.id===currentPropId);if(pr)label=pr.name;document.querySelectorAll('#detail-view .detail-card.ck-collapsed').forEach(c=>c.classList.add('pr-was-collapsed'));document.querySelectorAll('#detail-view .pr-was-collapsed').forEach(c=>c.classList.remove('ck-collapsed'));}
   const d=new Date();document.getElementById('print-title').innerHTML='<div class="pt-show">'+esc(showCfg().name)+' \u00b7 Props</div><div class="pt-view">'+esc(label)+'</div><div class="pt-date">Printed '+d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</div>';
   setTimeout(()=>{window.print();document.querySelectorAll('#detail-view .pr-was-collapsed').forEach(c=>{c.classList.add('ck-collapsed');c.classList.remove('pr-was-collapsed');});},50);}
@@ -1216,7 +1217,11 @@ function skFitPages(){let css='';for(const ss of document.styleSheets){try{for(c
       const cap=(g.classList.contains('sz-s')?4.8:3.6)*PX;imgh=Math.max(0.8*PX,Math.min(cap,imgh+d/rows));g.style.setProperty('--imgh',imgh+'px');
       if(imgh<=0.8*PX||imgh>=cap){if(g.getBoundingClientRect().height<=target||imgh<=0.8*PX)break;}}
     while(g.getBoundingClientRect().height>target&&imgh>0.8*PX){imgh-=4;g.style.setProperty('--imgh',imgh+'px');}});}
-window.addEventListener('beforeprint',()=>{if(currentView==='strike'){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();try{skFitPages();}catch(e){console.error('fit',e);}}});
+async function skPreparePrint(){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();
+  const imgs=[...document.querySelectorAll('#strike-view img')];await Promise.all(imgs.map(i=>(i.decode?i.decode():Promise.resolve()).catch(()=>{})));
+  try{skFitPages();}catch(e){console.error('fit',e);}}
+// Cmd/Ctrl+P without the print button: build the layout synchronously (photos are data URLs, already in memory, not lazy)
+window.addEventListener('beforeprint',()=>{if(currentView==='strike'&&!SK_PRINT){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();try{skFitPages();}catch(e){console.error('fit',e);}}});
 window.addEventListener('afterprint',()=>{if(SK_PRINT){SK_PRINT=false;document.body.classList.remove('sk-printing');const st=document.getElementById('sk-fit-style');if(st)st.remove();renderStrikeView();}});
 function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
 function skAutosize(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
@@ -1225,7 +1230,7 @@ function editStrikeNote(id){const box=document.getElementById('sk-note-'+id);if(
   t.onblur=()=>{if(t.value.trim()!==note.trim())setStrikeNoteFor(id,t.value);box.innerHTML=strikeNoteHtml(id,strikeParts(getPropData(id).strikePlan).note);};
   t.onkeydown=e=>{if(e.key==='Escape'){t.value=note;t.blur();}};skAutosize(t);t.focus();t.setSelectionRange(t.value.length,t.value.length);}
 function strikeThumbsHtml(id,n){const t=STRIKE_THUMBS[id];if(!t)return Array.from({length:Math.min(n,4)},()=>'<div class="sk-ph"></div>').join('');
-  return t.map((src,i)=>'<img loading="lazy" src="'+src+'" onclick="viewStrikeImg(\''+id+'\','+i+')" alt="Sourcing option '+(i+1)+'">').join('');}
+  return t.map((src,i)=>'<img'+(SK_PRINT?'':' loading="lazy"')+' decoding="sync" src="'+src+'" onclick="viewStrikeImg(\''+id+'\','+i+')" alt="Sourcing option '+(i+1)+'">').join('');}
 async function loadStrikeThumbs(ids){for(let i=0;i<ids.length;i+=8){const chunk=ids.slice(i,i+8);
   try{const recs=await sbGet('prop_images','select=prop_id,image_data,sort_order&zone=eq.src&sort_order=gte.0&order=sort_order.asc&prop_id=in.('+chunk.map(x=>'"'+x.replace(/"/g,'')+'"').join(',')+')');
     chunk.forEach(id=>{STRIKE_THUMBS[id]=recs.filter(r=>r.prop_id===id).map(r=>r.image_data);});}catch(e){console.error('strike thumbs',e);return;}
