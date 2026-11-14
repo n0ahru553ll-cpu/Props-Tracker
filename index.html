@@ -604,7 +604,7 @@ table.xl{font-size:8pt!important}table.xl th{position:static!important}table.xl 
 .sk-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start}
 .sk-phead{display:block!important;font-size:15pt;font-weight:800;margin:6px 0 4px;padding-bottom:3px;border-bottom:2px solid #1D1D1F;break-after:avoid}.sk-phead.lo{break-before:page;page-break-before:always}.sk-phead span{font-weight:500;font-size:10pt;color:#6E6E73}
 body.sk-printing #print-title{display:none!important}
-.sk-pgroup{break-before:page;page-break-before:always}.sk-pgroup:first-child{break-before:auto;page-break-before:auto}
+.sk-pgroup{break-before:page;page-break-before:always}.sk-pages>.sk-pgroup:first-child{break-before:auto;page-break-before:auto}
 .sk-ghead{display:block!important;border-bottom:2px solid #1D1D1F;padding:0 0 6px;margin:0 0 8px;break-after:avoid;page-break-after:avoid}.sk-gshow{font-size:9pt;color:#6E6E73;font-weight:600}.sk-gname{font-size:22pt;font-weight:800;letter-spacing:-.02em;line-height:1.1}.sk-gpri{font-size:11pt;font-weight:700;margin-top:2px}.sk-gpri.hi{color:#9B2C2C}.sk-gpri.lo{color:#6E6E73}
 .sk-pri{font-size:7pt!important;padding:0 6px!important;margin:0 0 3px!important;background:none!important;border:1px solid currentColor!important}.sk-pri.lo,.sk-pri-auto{display:none!important}
 .sk-row{background:#fff!important;border:1px solid #D1D1D6!important;border-radius:6px!important;padding:6px 7px!important;margin:0!important;break-inside:avoid;page-break-inside:avoid}
@@ -1194,7 +1194,7 @@ function strikePrintGroups(rows){const order=[...STRIKE_PEOPLE];const out=[];
     set.forEach(r=>{const ks=strikeByParts(r.e.by).map(strikeByOne);(ks.length?ks:['Unassigned']).forEach(k=>(by[k]=by[k]||[]).push(r));});
     const keys=Object.keys(by).sort((a,b)=>{const ia=a==='Unassigned'?999:(order.indexOf(a)<0?500:order.indexOf(a)),ib=b==='Unassigned'?999:(order.indexOf(b)<0?500:order.indexOf(b));return ia-ib||a.localeCompare(b);});
     keys.forEach(k=>out.push('<div class="sk-pgroup"><div class="sk-ghead"><div class="sk-gshow">'+esc(showCfg().name)+' \u00b7 Strike Plan</div><div class="sk-gname">'+esc(k)+'</div><div class="sk-gpri '+(hi?'hi':'lo')+'">'+(hi?'High priority':'Low priority')+' \u00b7 '+by[k].length+' item'+(by[k].length===1?'':'s')+'</div></div><div class="sk-grid">'+by[k].map(strikeTileHtml).join('')+'</div></div>'));}
-  return out.join('');}
+  return '<div class="sk-pages">'+out.join('')+'</div>';}
 window.addEventListener('beforeprint',()=>{if(currentView==='strike'){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();}});
 window.addEventListener('afterprint',()=>{if(SK_PRINT){SK_PRINT=false;document.body.classList.remove('sk-printing');renderStrikeView();}});
 function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
