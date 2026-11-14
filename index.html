@@ -1061,7 +1061,7 @@ const STRIKE_EXTRA=['Toss','Return to Other Department'];
 function stockSources(src){const stock=SOURCE_OPTS[0][1];return sourceList(src).filter(x=>stock.includes(x));}
 function strikeDefault(data){return stockSources(data.source).map(x=>'Return to '+x);}
 const STRIKE_NOTE_SEP='|| Note:';
-const STRIKE_BY_SEP='|| By:';const STRIKE_PEOPLE=['Binky','Kira','Noah','Taylor','Tyler','Mackenzie','Audrey','David','Practicum','Other'];
+const STRIKE_BY_SEP='|| By:';const STRIKE_PEOPLE=['Binky','Kira','Noah','Taylor','Tyler','Mackenzie','Audrey','David','Megan','Practicum','Other'];
 // strike_plan holds "<locations> || By: <person> || Note: <text>" (By and Note optional, Note always last)
 function strikeParts(raw){let v=String(raw||'');let note='',by='';const i=v.indexOf(STRIKE_NOTE_SEP);if(i>=0){note=v.slice(i+STRIKE_NOTE_SEP.length).trim();v=v.slice(0,i);}
   const j=v.indexOf(STRIKE_BY_SEP);if(j>=0){by=v.slice(j+STRIKE_BY_SEP.length).trim();v=v.slice(0,j);}return{plan:v.trim(),by,note};}
