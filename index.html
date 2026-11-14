@@ -204,6 +204,8 @@ table.xl tr.over td.num.bad{color:#9B2C2C;font-weight:600}
 .sk-name{font-size:15px;font-weight:600;color:var(--ink);cursor:pointer}.sk-name:hover{text-decoration:underline}.sk-sub{font-size:11px;color:var(--muted);margin-top:2px}
 .sk-locs{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.sk-loc{font-size:11px;font-weight:600;color:#fff;padding:3px 10px;border-radius:100px}.sk-loc.auto{opacity:.7}.sk-none{font-size:12px;color:var(--muted);font-style:italic}
 .sk-by-print{display:none}
+.sk-pri{border:none;border-radius:100px;padding:2px 9px;margin:0 0 8px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer}.sk-pri.hi{background:#FDE2E1;color:#9B2C2C}.sk-pri.lo{background:rgba(0,0,0,.06);color:var(--muted);font-weight:600}
+.sk-phead,.sk-ghead{display:none}
 .sk-edit{background:none;border:none;padding:2px 4px;font-family:var(--font);font-size:12px;color:var(--muted);cursor:pointer}.sk-edit:hover{color:var(--ink)}
 .sk-picker{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;padding:8px;border:1px dashed var(--border);border-radius:10px}.sk-picker .src-opt{padding:5px 10px}.sk-dept{width:100%}
 .sk-picker-foot{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:2px}.sk-done{background:#12100E;color:#fff;border:none;border-radius:100px;padding:5px 14px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer}.sk-by-ctl:has(.modal-input){display:flex}.sk-by-ctl .modal-input~.sk-by-other{width:100%;padding:10px 12px}.sk-by-ctl{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}.sk-by-other{font-family:var(--font);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 8px;width:150px}
@@ -600,6 +602,9 @@ table.xl{font-size:8pt!important}table.xl th{position:static!important}table.xl 
 .img-grid{grid-template-columns:repeat(4,1fr)!important}
 #strike-view .dash-title,.sk-filters,.sk-byfilter,.sk-note-add,.sk-by select,.sk-edit,.sk-picker{display:none!important}
 .sk-grid{display:grid!important;grid-template-columns:repeat(3,1fr);gap:6px;align-items:start}
+.sk-phead{display:block!important;font-size:15pt;font-weight:800;margin:6px 0 4px;padding-bottom:3px;border-bottom:2px solid #1D1D1F;break-after:avoid}.sk-phead.lo{break-before:page;page-break-before:always}.sk-phead span{font-weight:500;font-size:10pt;color:#6E6E73}
+.sk-pgroup{margin:0 0 10px}.sk-ghead{display:block!important;font-size:11pt;font-weight:700;margin:4px 0 4px;break-after:avoid;page-break-after:avoid}.sk-ghead span{font-weight:500;font-size:8pt;color:#6E6E73}
+.sk-pri{font-size:7pt!important;padding:0 6px!important;margin:0 0 3px!important;background:none!important;border:1px solid currentColor!important}.sk-pri.lo{display:none!important}
 .sk-row{background:#fff!important;border:1px solid #D1D1D6!important;border-radius:6px!important;padding:6px 7px!important;margin:0!important;break-inside:avoid;page-break-inside:avoid}
 .sk-name{font-size:10pt!important;line-height:1.2}.sk-sub{font-size:7pt!important;margin-top:1px!important}
 .sk-locs{margin:4px 0!important;gap:3px!important}.sk-loc{font-size:7pt!important;padding:1px 6px!important}.sk-loc.auto{opacity:1!important}
@@ -1063,12 +1068,23 @@ function strikeDefault(data){return stockSources(data.source).map(x=>'Return to 
 const STRIKE_NOTE_SEP='|| Note:';
 const STRIKE_BY_SEP='|| By:';const STRIKE_PEOPLE=['Binky','Kira','Noah','Taylor','Tyler','Mackenzie','Audrey','David','Megan','Practicum','Other'];
 // strike_plan holds "<locations> || By: <person> || Note: <text>" (By and Note optional, Note always last)
-function strikeParts(raw){let v=String(raw||'');let note='',by='';const i=v.indexOf(STRIKE_NOTE_SEP);if(i>=0){note=v.slice(i+STRIKE_NOTE_SEP.length).trim();v=v.slice(0,i);}
-  const j=v.indexOf(STRIKE_BY_SEP);if(j>=0){by=v.slice(j+STRIKE_BY_SEP.length).trim();v=v.slice(0,j);}return{plan:v.trim(),by,note};}
-function strikeCompose(plan,note,by){note=String(note||'').split(STRIKE_NOTE_SEP).join(' ').trim();by=String(by||'').replace(/\|\|/g,' ').trim();
-  return [plan||'',by?STRIKE_BY_SEP+' '+by:'',note?STRIKE_NOTE_SEP+' '+note:''].filter(Boolean).join(' ');}
-function strikeSet(raw,ch){const p={...strikeParts(raw),...ch};return strikeCompose(p.plan,p.note,p.by);}
-function strikeEffective(data){const{plan:v,note,by}=strikeParts(data.strikePlan);if(v==='(none)')return{list:[],auto:false,note,by};if(v)return{list:v.split(/\s*;\s*/).filter(Boolean),auto:false,note,by};return{list:strikeDefault(data),auto:true,note,by};}
+const STRIKE_PRI_SEP='|| Pri:';
+// full format: "<locations> || By: <person> || Pri: High|Low || Note: <text>" (all but locations optional, Note always last)
+function strikeParts(raw){let v=String(raw||'');let note='',by='',pri='';const i=v.indexOf(STRIKE_NOTE_SEP);if(i>=0){note=v.slice(i+STRIKE_NOTE_SEP.length).trim();v=v.slice(0,i);}
+  const k=v.indexOf(STRIKE_PRI_SEP);if(k>=0){pri=v.slice(k+STRIKE_PRI_SEP.length).trim();v=v.slice(0,k);}
+  const j=v.indexOf(STRIKE_BY_SEP);if(j>=0){by=v.slice(j+STRIKE_BY_SEP.length).trim();v=v.slice(0,j);}return{plan:v.trim(),by,pri,note};}
+function strikeCompose(plan,note,by,pri){note=String(note||'').split(STRIKE_NOTE_SEP).join(' ').trim();by=String(by||'').replace(/\|\|/g,' ').trim();pri=pri==='High'||pri==='Low'?pri:'';
+  return [plan||'',by?STRIKE_BY_SEP+' '+by:'',pri?STRIKE_PRI_SEP+' '+pri:'',note?STRIKE_NOTE_SEP+' '+note:''].filter(Boolean).join(' ');}
+function strikeSet(raw,ch){const p={...strikeParts(raw),...ch};return strikeCompose(p.plan,p.note,p.by,p.pri);}
+// Priority: High by default for furniture, anything going offsite, and guns; a tap on the tile overrides it
+const STRIKE_GUN_RE=/\b(gun|guns|pistols?|rifles?|muskets?|firearms?|revolvers?|flintlocks?|shotguns?|blunderbuss)\b/i;
+function strikePriAuto(p,e){return /furniture/i.test(p.section||'')||e.list.includes('Return to Offsite')||STRIKE_GUN_RE.test((p.name||'')+' '+(p.group||''));}
+function strikeIsHigh(p,e){return e.pri?e.pri==='High':strikePriAuto(p,e);}
+function strikePriHtml(p,e){const hi=strikeIsHigh(p,e);return '<button class="sk-pri '+(hi?'hi':'lo')+'" id="sk-pri-'+esc(p.id)+'" data-pid="'+esc(p.id)+'" onclick="skTogglePri(this.dataset.pid)" title="'+(e.pri?'Set by hand':'Automatic (furniture / offsite / guns)')+' \u2014 tap to change">'+(hi?'High priority':'Low priority')+(e.pri?'':' \u00b7 auto')+'</button>';}
+function skTogglePri(id){const p=PROPS_DATA.find(x=>x.id===id);if(!p)return;const d=getPropData(id);const e=strikeEffective(d);const want=strikeIsHigh(p,e)?'Low':'High';
+  const autoHi=strikePriAuto(p,e);d.strikePlan=strikeSet(d.strikePlan,{pri:(want==='High')===autoHi?'':want});setPropData(id,d);showToast();
+  const b=document.getElementById('sk-pri-'+id);if(b)b.outerHTML=strikePriHtml(p,strikeEffective(d));}
+function strikeEffective(data){const{plan:v,note,by,pri}=strikeParts(data.strikePlan);if(v==='(none)')return{list:[],auto:false,note,by,pri};if(v)return{list:v.split(/\s*;\s*/).filter(Boolean),auto:false,note,by,pri};return{list:strikeDefault(data),auto:true,note,by,pri};}
 // "Other" with a typed name is stored as "Other: <name>"
 function strikeByKey(by){return /^Other\b/.test(by||'')?'Other':(by||'');}
 function strikeByName(by){const m=String(by||'').match(/^Other:\s*(.+)$/);return m?m[1].trim():(by||'');}
@@ -1130,12 +1146,7 @@ function renderStrikeView(){const el=document.getElementById('strike-view');cons
     +'</div><div class="sk-byfilter"><label>Responsible</label><select class="modal-input" onchange="setStrikeByFilter(this.value)"><option value="All">Everyone ('+rows.length+')</option>'
     +people.map(x=>'<option value="'+esc(x)+'"'+(STRIKE_BY_FILTER===x?' selected':'')+'>'+esc(x)+' ('+(byCounts[x]||0)+')</option>').join('')
     +'<option value="(unassigned)"'+(STRIKE_BY_FILTER==='(unassigned)'?' selected':'')+'>Unassigned ('+unassigned+')</option></select></div>'
-    +(shown.length?'<div class="sk-grid">'+shown.map(r=>{const id=r.p.id;
-      const locs='<div class="sk-locs-wrap" id="sk-locs-'+esc(id)+'">'+strikeLocsHtml(id,r.e)+'</div>';
-      const n=(r.d.srcImgs||[]).length;
-      return '<div class="sk-row"><div class="sk-name" onclick="openProp(\''+id+'\')">'+esc(r.p.name)+'</div><div class="sk-sub">'+esc([r.p.section,r.p.group].filter(Boolean).join(' · '))+(r.p.qty?' · qty '+esc(r.p.qty):'')+'</div>'
-        +locs+'<div class="sk-by"><span>Strike by</span>'+strikeBySelect(id,r.e.by,'sk-by-sel'+(r.e.by?'':' empty'))+'</div><div class="sk-note-wrap" id="sk-note-'+esc(id)+'">'+strikeNoteHtml(id,r.e.note)+'</div>'
-        +(n?'<div class="sk-imgs" id="sk-imgs-'+esc(id)+'">'+strikeThumbsHtml(id,n)+'</div>':'')+'</div>';}).join('')+'</div>':'<div class="sk-none">Nothing here.</div>');
+    +(shown.length?(SK_PRINT?strikePrintGroups(shown):'<div class="sk-grid">'+shown.map(strikeTileHtml).join('')+'</div>'):'<div class="sk-none">Nothing here.</div>');
   loadStrikeThumbs(shown.filter(r=>(r.d.srcImgs||[]).length&&!STRIKE_THUMBS[r.p.id]).map(r=>r.p.id));}
 // Inline strike-location editing on the Strike tab
 const SK_OPEN=new Set();
@@ -1155,6 +1166,22 @@ function skSaveLocs(id,list){const d=getPropData(id);d.strikePlan=strikeSet(d.st
 function skToggleLoc(id,o){skSaveLocs(id,strikeToggled(getPropData(id),o));skRefreshLocs(id);if(o==='Return to Other Department'){const i=document.querySelector('#sk-locs-'+CSS.escape(id)+' .sk-dept');if(i)i.focus();}}
 function skSetDept(id,v){skSaveLocs(id,strikeDeptList(getPropData(id),v));}
 function skResetLocs(id){const d=getPropData(id);d.strikePlan=strikeSet(d.strikePlan,{plan:''});setPropData(id,d);showToast();skRefreshLocs(id);}
+function strikeTileHtml(r){const id=r.p.id;
+      const locs='<div class="sk-locs-wrap" id="sk-locs-'+esc(id)+'">'+strikeLocsHtml(id,r.e)+'</div>';
+      const n=(r.d.srcImgs||[]).length;
+      return '<div class="sk-row"><div class="sk-name" onclick="openProp(\''+id+'\')">'+esc(r.p.name)+'</div><div class="sk-sub">'+esc([r.p.section,r.p.group].filter(Boolean).join(' · '))+(r.p.qty?' · qty '+esc(r.p.qty):'')+'</div>'
+        +locs+strikePriHtml(r.p,r.e)+'<div class="sk-by"><span>Strike by</span>'+strikeBySelect(id,r.e.by,'sk-by-sel'+(r.e.by?'':' empty'))+'</div><div class="sk-note-wrap" id="sk-note-'+esc(id)+'">'+strikeNoteHtml(id,r.e.note)+'</div>'
+        +(n?'<div class="sk-imgs" id="sk-imgs-'+esc(id)+'">'+strikeThumbsHtml(id,n)+'</div>':'')+'</div>';}
+let SK_PRINT=false;
+function strikePrintGroups(rows){const order=[...STRIKE_PEOPLE];const out=[];
+  for(const hi of [true,false]){const set=rows.filter(r=>strikeIsHigh(r.p,r.e)===hi);if(!set.length)continue;const by={};
+    set.forEach(r=>{const k=strikeByName(r.e.by)||'Unassigned';(by[k]=by[k]||[]).push(r);});
+    const keys=Object.keys(by).sort((a,b)=>{const ia=a==='Unassigned'?999:(order.indexOf(a)<0?500:order.indexOf(a)),ib=b==='Unassigned'?999:(order.indexOf(b)<0?500:order.indexOf(b));return ia-ib||a.localeCompare(b);});
+    out.push('<div class="sk-phead '+(hi?'hi':'lo')+'">'+(hi?'High priority':'Low priority')+' <span>('+set.length+')</span></div>');
+    keys.forEach(k=>out.push('<div class="sk-pgroup"><div class="sk-ghead">'+esc(k)+' <span>· '+(hi?'High':'Low')+' · '+by[k].length+'</span></div><div class="sk-grid">'+by[k].map(strikeTileHtml).join('')+'</div></div>'));}
+  return out.join('');}
+window.addEventListener('beforeprint',()=>{if(currentView==='strike'){SK_PRINT=true;SK_OPEN.clear();renderStrikeView();}});
+window.addEventListener('afterprint',()=>{if(SK_PRINT){SK_PRINT=false;renderStrikeView();}});
 function strikeNoteHtml(id,note){return note?'<div class="sk-note-text" title="Tap to edit" onclick="editStrikeNote(\''+id+'\')">'+esc(note)+'</div>':'<button class="sk-note-add" onclick="editStrikeNote(\''+id+'\')">+ Add strike note</button>';}
 function skAutosize(t){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}
 function editStrikeNote(id){const box=document.getElementById('sk-note-'+id);if(!box||box.querySelector('textarea'))return;const note=strikeParts(getPropData(id).strikePlan).note;
@@ -1243,6 +1270,7 @@ function histDescribe(h){
   if(h.field==='asked'){let v={};try{v=JSON.parse(h.new_value)||{};}catch{}const a=ACT_BY_ID[v.a];const what=a?' \u2014 '+esc(a.who||'')+': '+esc(noteSummary(a.details||typeLabel(a))):'';return v.clear?'<b>Asked log cleared</b>'+what:'<b>Asked</b> ('+esc(v.via||'')+', '+fmtDate(v.on)+')'+what;}
   const L=HIST_LABEL[h.field]||h.field;
   if(h.field==='strikePlan'){const o=strikeParts(h.old_value),n=strikeParts(h.new_value);
+    if(o.plan===n.plan&&o.note===n.note&&o.by===n.by&&o.pri!==n.pri)return '<b>Strike priority:</b> '+(n.pri?esc(n.pri):'automatic');
     if(o.plan===n.plan&&o.note===n.note&&o.by!==n.by)return '<b>Strike by:</b> '+(n.by?esc(n.by):'unassigned');
     if(o.plan===n.plan&&o.note!==n.note)return '<b>Strike note:</b> '+(n.note?esc(n.note):'removed');
     if(n.plan===''||n.plan==='(none)')return '<b>Strike plan:</b> '+(n.plan===''?'reset to match Source':'cleared');
