@@ -920,7 +920,7 @@ async function printView(){const v=currentView||'list';const names={list:'Props'
   if(v==='list'){const ap=document.querySelector('#filter-bar .pill.active');const t=ap?ap.textContent.trim():'All';label=t==='All'?'All Props':(t==='To Do \u2192 Done'?'To Do \u2192 Done':'Props \u2014 '+t);if(currentSearch)label+=' (search: \u201c'+currentSearch+'\u201d)';
     if(currentFilter==='progress'&&!ACTIONS_ALL){await ensureAllActions();renderList();}}
   if(v==='strike'){const f=[];if(STRIKE_FILTER!=='All')f.push(STRIKE_FILTER==='(none)'?'No plan':STRIKE_FILTER.replace(/^Return to /,''));if(STRIKE_BY_FILTER!=='All')f.push(STRIKE_BY_FILTER==='(unassigned)'?'Unassigned':'By '+STRIKE_BY_FILTER);if(f.length)label+=' \u2014 '+f.join(' \u00b7 ');}
-  if(v==='strike'&&SK_OPEN.size){SK_OPEN.clear();renderStrikeView();}
+  if(v==='strike'){if(SK_OPEN.size){SK_OPEN.clear();renderStrikeView();}const need=liveProps().filter(p=>(getPropData(p.id).srcImgs||[]).length&&!STRIKE_THUMBS[p.id]).map(p=>p.id);if(need.length){showToast&&showToast();await loadStrikeThumbs(need);}}
   if(v==='detail'){const pr=PROPS_DATA.find(x=>x.id===currentPropId);if(pr)label=pr.name;document.querySelectorAll('#detail-view .detail-card.ck-collapsed').forEach(c=>c.classList.add('pr-was-collapsed'));document.querySelectorAll('#detail-view .pr-was-collapsed').forEach(c=>c.classList.remove('ck-collapsed'));}
   const d=new Date();document.getElementById('print-title').innerHTML='<div class="pt-show">'+esc(showCfg().name)+' \u00b7 Props</div><div class="pt-view">'+esc(label)+'</div><div class="pt-date">Printed '+d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</div>';
   setTimeout(()=>{window.print();document.querySelectorAll('#detail-view .pr-was-collapsed').forEach(c=>{c.classList.add('ck-collapsed');c.classList.remove('pr-was-collapsed');});},50);}
@@ -1213,8 +1213,8 @@ function skFitPages(){let css='';for(const ss of document.styleSheets){try{for(c
     let imgh=parseFloat(getComputedStyle(g).getPropertyValue('--imgh'))*PX||100;
     for(let i=0;i<8;i++){const h=g.getBoundingClientRect().height;const d=target-h;if(Math.abs(d)<6)break;
       const rows=new Set(tiles.filter(t=>t.querySelector('.sk-imgs img')).map(t=>Math.round(t.getBoundingClientRect().top))).size||1;
-      imgh=Math.max(0.8*PX,Math.min(3.6*PX,imgh+d/rows));g.style.setProperty('--imgh',imgh+'px');
-      if(imgh<=0.8*PX||imgh>=3.6*PX){if(g.getBoundingClientRect().height<=target||imgh<=0.8*PX)break;}}
+      const cap=(g.classList.contains('sz-s')?4.8:3.6)*PX;imgh=Math.max(0.8*PX,Math.min(cap,imgh+d/rows));g.style.setProperty('--imgh',imgh+'px');
+      if(imgh<=0.8*PX||imgh>=cap){if(g.getBoundingClientRect().height<=target||imgh<=0.8*PX)break;}}
     while(g.getBoundingClientRect().height>target&&imgh>0.8*PX){imgh-=4;g.style.setProperty('--imgh',imgh+'px');}});}
 window.addEventListener('beforeprint',()=>{if(currentView==='strike'){SK_PRINT=true;SK_OPEN.clear();document.body.classList.add('sk-printing');renderStrikeView();try{skFitPages();}catch(e){console.error('fit',e);}}});
 window.addEventListener('afterprint',()=>{if(SK_PRINT){SK_PRINT=false;document.body.classList.remove('sk-printing');const st=document.getElementById('sk-fit-style');if(st)st.remove();renderStrikeView();}});
