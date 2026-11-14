@@ -608,7 +608,7 @@ table.xl{font-size:8pt!important}table.xl th{position:static!important}table.xl 
 .sk-row{background:#fff!important;border:1px solid #D1D1D6!important;border-radius:6px!important;padding:6px 7px!important;margin:0!important;break-inside:avoid;page-break-inside:avoid}
 .sk-name{font-size:10pt!important;line-height:1.2}.sk-sub{font-size:7pt!important;margin-top:1px!important}
 .sk-locs{margin:4px 0!important;gap:3px!important}.sk-loc{font-size:7pt!important;padding:1px 6px!important}.sk-loc.auto{opacity:1!important}
-.sk-by{margin:0 0 3px!important;gap:4px!important}.sk-by>span:first-child{font-size:7pt!important}.sk-by-other{display:none!important}.sk-by-print{display:inline!important;font-size:8pt}
+.sk-by{margin:0 0 3px!important;gap:4px!important}.sk-by>span:first-child{font-size:7pt!important}.sk-by-other,.sk-by2{display:none!important}.sk-by-print{display:inline!important;font-size:8pt}
 .sk-note-text{font-size:8pt!important;padding:3px 6px!important;line-height:1.3!important}
 .sk-imgs{margin-top:4px!important;gap:3px!important;overflow:visible!important;flex-wrap:wrap}.sk-imgs img{height:52px!important;max-width:80px!important;border-radius:4px!important}.sk-imgs img:nth-child(n+4),.sk-ph{display:none!important}
 }
@@ -1089,20 +1089,31 @@ function skTogglePri(id){const p=PROPS_DATA.find(x=>x.id===id);if(!p)return;cons
   const b=document.getElementById('sk-pri-'+id);if(b)b.outerHTML=strikePriHtml(p,strikeEffective(d));}
 function strikeEffective(data){const{plan:v,note,by,pri}=strikeParts(data.strikePlan);if(v==='(none)')return{list:[],auto:false,note,by,pri};if(v)return{list:v.split(/\s*;\s*/).filter(Boolean),auto:false,note,by,pri};return{list:strikeDefault(data),auto:true,note,by,pri};}
 // "Other" with a typed name is stored as "Other: <name>"
-function strikeByKey(by){return /^Other\b/.test(by||'')?'Other':(by||'');}
-function strikeByName(by){const m=String(by||'').match(/^Other:\s*(.+)$/);return m?m[1].trim():(by||'');}
-function strikeBySelect(id,by,cls){const key=strikeByKey(by);const opts=STRIKE_PEOPLE.includes(key)||!key?STRIKE_PEOPLE:[...STRIKE_PEOPLE,key];
-  const other=key==='Other'?(String(by).match(/^Other:\s*(.*)$/)||[,''])[1].trim():'';
+// Strike by can hold up to two people: "<p1> & <p2>"; a person may be "Other: <typed name>" (first slot only)
+function strikeByParts(by){return String(by||'').split(/\s*&\s*/).map(x=>x.trim()).filter(Boolean);}
+function strikeByKey(one){return /^Other\b/.test(one||'')?'Other':(one||'');}
+function strikeByOne(one){const m=String(one||'').match(/^Other:\s*(.+)$/);return m?m[1].trim():(one||'');}
+function strikeByName(by){return strikeByParts(by).map(strikeByOne).join(' & ');}
+function strikeByKeys(by){return strikeByParts(by).map(strikeByKey);}
+function strikeBySelect(id,by,cls){const parts=strikeByParts(by);const p1=parts[0]||'',p2=parts[1]||'';const key=strikeByKey(p1);
+  const opts=STRIKE_PEOPLE.includes(key)||!key?STRIKE_PEOPLE:[...STRIKE_PEOPLE,key];
+  const other=key==='Other'?(String(p1).match(/^Other:\s*(.*)$/)||[,''])[1].trim():'';
+  const opts2=STRIKE_PEOPLE.filter(x=>x!=='Other'&&x!==key);if(p2&&!opts2.includes(p2))opts2.push(p2);
   return '<span class="sk-by-ctl" data-pid="'+esc(id)+'" data-cls="'+esc(cls)+'"><select class="'+cls+'" data-pid="'+esc(id)+'" onchange="setStrikeBy(this.dataset.pid,this.value,this)"><option value="">— Unassigned —</option>'+opts.map(o=>'<option'+(o===key?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>'
     +(key==='Other'?'<input class="sk-by-other" placeholder="Type a name…" value="'+esc(other)+'" data-pid="'+esc(id)+'" onchange="setStrikeOther(this.dataset.pid,this.value,this)">':'')
+    +(p1?'<select class="'+cls.replace(/\s*\bempty\b/,'')+' sk-by2'+(p2?'':' empty')+'" data-pid="'+esc(id)+'" onchange="setStrikeBy2(this.dataset.pid,this.value,this)"><option value="">'+(p2?'— no 2nd person —':'+ 2nd person')+'</option>'+opts2.map(o=>'<option'+(o===p2?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>':'')
     +'<b class="sk-by-print">'+esc(strikeByName(by)||'Unassigned')+'</b></span>';}
 function strikeByRefresh(ctl,by,focusOther){if(!ctl)return;let cls=(ctl.dataset.cls||'').replace(/\s*\bempty\b/,'').trim();if(!by&&cls.includes('sk-by-sel'))cls+=' empty';ctl.outerHTML=strikeBySelect(ctl.dataset.pid,by,cls);
   if(focusOther){const n=document.querySelector('.sk-by-ctl[data-pid="'+CSS.escape(ctl.dataset.pid)+'"] .sk-by-other');if(n)n.focus();}}
-function setStrikeBy(pid,v,sel){const data=getPropData(pid);const cur=strikeParts(data.strikePlan).by;
-  const nv=v==='Other'&&strikeByKey(cur)==='Other'?cur:v;data.strikePlan=strikeSet(data.strikePlan,{by:nv});setPropData(pid,data);showToast();
-  if(currentView==='strike'&&STRIKE_BY_FILTER!=='All'){renderStrikeView();return;}strikeByRefresh(sel&&sel.closest('.sk-by-ctl'),nv,v==='Other');}
-function setStrikeOther(pid,name,inp){const data=getPropData(pid);const nv=name.trim()?'Other: '+name.trim():'Other';data.strikePlan=strikeSet(data.strikePlan,{by:nv});setPropData(pid,data);showToast();
-  const b=inp&&inp.parentElement.querySelector('.sk-by-print');if(b)b.textContent=strikeByName(nv);}
+function strikeBySave(pid,nb,sel,focusOther){const data=getPropData(pid);data.strikePlan=strikeSet(data.strikePlan,{by:nb});setPropData(pid,data);showToast();
+  if(currentView==='strike'&&STRIKE_BY_FILTER!=='All'){renderStrikeView();return;}strikeByRefresh(sel&&sel.closest('.sk-by-ctl'),nb,focusOther);}
+function setStrikeBy(pid,v,sel){const parts=strikeByParts(strikeParts(getPropData(pid).strikePlan).by);const cur=parts[0]||'';
+  const p1=v==='Other'&&strikeByKey(cur)==='Other'?cur:v;const p2=(parts[1]&&parts[1]!==p1)?parts[1]:'';
+  strikeBySave(pid,p1?[p1,p2].filter(Boolean).join(' & '):'',sel,v==='Other');}
+function setStrikeBy2(pid,v,sel){const p1=strikeByParts(strikeParts(getPropData(pid).strikePlan).by)[0]||'';if(!p1)return;strikeBySave(pid,v?p1+' & '+v:p1,sel,false);}
+function setStrikeOther(pid,name,inp){const parts=strikeByParts(strikeParts(getPropData(pid).strikePlan).by);const p1=name.trim()?'Other: '+name.trim():'Other';
+  const nb=[p1,parts[1]||''].filter(Boolean).join(' & ');const data=getPropData(pid);data.strikePlan=strikeSet(data.strikePlan,{by:nb});setPropData(pid,data);showToast();
+  const b=inp&&inp.parentElement.querySelector('.sk-by-print');if(b)b.textContent=strikeByName(nb);}
 function strikeText(data){const e=strikeEffective(data);return [e.list.join('; ')+(e.auto&&e.list.length?' (auto)':''),e.by?'By: '+strikeByName(e.by):'',e.note?'Note: '+e.note:''].filter(Boolean).join(' \u2014 ');}
 function renderStrikeCard(data){const e=strikeEffective(data);const sel=e.list;
   const dept=(sel.find(x=>x.startsWith('Return to Other Department'))||'').replace(/^Return to Other Department\s*\(?/,'').replace(/\)$/,'');
@@ -1139,10 +1150,10 @@ function renderStrikeView(){const el=document.getElementById('strike-view');cons
   const order=[...SOURCE_OPTS[0][1].map(x=>'Return to '+x),...STRIKE_EXTRA];
   const keys=Object.keys(counts).sort((a,b)=>order.indexOf(a)-order.indexOf(b));
   if(STRIKE_FILTER!=='All'&&STRIKE_FILTER!=='(none)'&&!counts[STRIKE_FILTER])STRIKE_FILTER='All';
-  const byCounts={};let unassigned=0;rows.forEach(r=>{if(r.e.by){const k=strikeByKey(r.e.by);byCounts[k]=(byCounts[k]||0)+1;}else unassigned++;});
+  const byCounts={};let unassigned=0;rows.forEach(r=>{if(r.e.by){new Set(strikeByKeys(r.e.by)).forEach(k=>byCounts[k]=(byCounts[k]||0)+1);}else unassigned++;});
   const people=[...STRIKE_PEOPLE,...Object.keys(byCounts).filter(x=>!STRIKE_PEOPLE.includes(x))];
   const shown=rows.filter(r=>(STRIKE_FILTER==='All'||(STRIKE_FILTER==='(none)'?!r.e.list.length:r.e.list.some(l=>strikeLocKey(l)===STRIKE_FILTER)))
-    &&(STRIKE_BY_FILTER==='All'||(STRIKE_BY_FILTER==='(unassigned)'?!r.e.by:strikeByKey(r.e.by)===STRIKE_BY_FILTER)));
+    &&(STRIKE_BY_FILTER==='All'||(STRIKE_BY_FILTER==='(unassigned)'?!r.e.by:strikeByKeys(r.e.by).includes(STRIKE_BY_FILTER))));
   const chip=(k,label,n,bg)=>'<button class="src-opt'+(STRIKE_FILTER===k?' selected':'')+'" style="background:'+bg+'" data-f="'+esc(k)+'" onclick="setStrikeFilter(this.dataset.f)">'+esc(label)+' ('+n+')</button>';
   el.innerHTML='<div class="dash-title">Strike Plan</div><div class="sk-filters">'
     +chip('All','All',rows.length,'#12100E')+keys.map(k=>chip(k,k.replace(/^Return to /,''),counts[k],strikeLocColor(k))).join('')+(none?chip('(none)','No plan',none,'#8A8A8E'):'')
@@ -1178,7 +1189,7 @@ function strikeTileHtml(r){const id=r.p.id;
 let SK_PRINT=false;
 function strikePrintGroups(rows){const order=[...STRIKE_PEOPLE];const out=[];
   for(const hi of [true,false]){const set=rows.filter(r=>strikeIsHigh(r.p,r.e)===hi);if(!set.length)continue;const by={};
-    set.forEach(r=>{const k=strikeByName(r.e.by)||'Unassigned';(by[k]=by[k]||[]).push(r);});
+    set.forEach(r=>{const ks=strikeByParts(r.e.by).map(strikeByOne);(ks.length?ks:['Unassigned']).forEach(k=>(by[k]=by[k]||[]).push(r));});
     const keys=Object.keys(by).sort((a,b)=>{const ia=a==='Unassigned'?999:(order.indexOf(a)<0?500:order.indexOf(a)),ib=b==='Unassigned'?999:(order.indexOf(b)<0?500:order.indexOf(b));return ia-ib||a.localeCompare(b);});
     out.push('<div class="sk-phead '+(hi?'hi':'lo')+'">'+(hi?'High priority':'Low priority')+' <span>('+set.length+')</span></div>');
     keys.forEach(k=>out.push('<div class="sk-pgroup"><div class="sk-ghead">'+esc(k)+' <span>· '+(hi?'High':'Low')+' · '+by[k].length+'</span></div><div class="sk-grid">'+by[k].map(strikeTileHtml).join('')+'</div></div>'));}
