@@ -1078,9 +1078,12 @@ function strikeCompose(plan,note,by,pri){note=String(note||'').split(STRIKE_NOTE
 function strikeSet(raw,ch){const p={...strikeParts(raw),...ch};return strikeCompose(p.plan,p.note,p.by,p.pri);}
 // Priority: High by default for furniture, anything going offsite, and guns; a tap on the tile overrides it
 const STRIKE_GUN_RE=/\b(gun|guns|pistols?|rifles?|muskets?|firearms?|revolvers?|flintlocks?|shotguns?|blunderbuss)\b/i;
-function strikePriAuto(p,e){return /furniture/i.test(p.section||'')||e.list.includes('Return to Offsite')||STRIKE_GUN_RE.test((p.name||'')+' '+(p.group||''));}
+// soft goods (curtains, covers, linens, rugs, pillows, doilies...) are never auto-High
+const STRIKE_SOFT_RE=/\b(curtains?|drapes?|draper(y|ies)|covers?|sheets?|blankets?|quilts?|pillows?|pillowcases?|cushions?|doil(y|ies)|linens?|rugs?|carpets?|shawls?|throws?|tablecloths?|napkins?|handkerchiefs?|fabrics?|textiles?)\b/i;
+function strikeIsSoft(p){const t=((p.name||'')+' '+(p.group||'')).replace(/sheet music/ig,'');return STRIKE_SOFT_RE.test(t);}
+function strikePriAuto(p,e){const t=(p.name||'')+' '+(p.group||'');if(STRIKE_GUN_RE.test(t))return true;if(strikeIsSoft(p))return false;return /furniture/i.test(p.section||'')||e.list.includes('Return to Offsite');}
 function strikeIsHigh(p,e){return e.pri?e.pri==='High':strikePriAuto(p,e);}
-function strikePriHtml(p,e){const hi=strikeIsHigh(p,e);return '<button class="sk-pri '+(hi?'hi':'lo')+'" id="sk-pri-'+esc(p.id)+'" data-pid="'+esc(p.id)+'" onclick="skTogglePri(this.dataset.pid)" title="'+(e.pri?'Set by hand':'Automatic (furniture / offsite / guns)')+' \u2014 tap to change">'+(hi?'High priority':'Low priority')+(e.pri?'':'<span class="sk-pri-auto"> \u00b7 auto</span>')+'</button>';}
+function strikePriHtml(p,e){const hi=strikeIsHigh(p,e);return '<button class="sk-pri '+(hi?'hi':'lo')+'" id="sk-pri-'+esc(p.id)+'" data-pid="'+esc(p.id)+'" onclick="skTogglePri(this.dataset.pid)" title="'+(e.pri?'Set by hand':'Automatic (furniture / offsite / guns; soft goods stay low)')+' \u2014 tap to change">'+(hi?'High priority':'Low priority')+(e.pri?'':'<span class="sk-pri-auto"> \u00b7 auto</span>')+'</button>';}
 function skTogglePri(id){const p=PROPS_DATA.find(x=>x.id===id);if(!p)return;const d=getPropData(id);const e=strikeEffective(d);const want=strikeIsHigh(p,e)?'Low':'High';
   const autoHi=strikePriAuto(p,e);d.strikePlan=strikeSet(d.strikePlan,{pri:(want==='High')===autoHi?'':want});setPropData(id,d);showToast();
   const b=document.getElementById('sk-pri-'+id);if(b)b.outerHTML=strikePriHtml(p,strikeEffective(d));}
